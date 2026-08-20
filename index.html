@@ -79,24 +79,24 @@
         <header class="bg-slate-900 text-white shadow-md border-b border-slate-800 no-print">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex justify-between items-center">
                 <div class="flex items-center space-x-3">
-                    <div class="w-10 h-10 bg-emerald-600 rounded-xl flex items-center justify-center font-bold text-lg text-white shadow-md border border-emerald-400/30">
-                        <i class="fa-solid fa-book-bookmark"></i>
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-lg text-white shadow-md border"
+                         :class="currentUser.role === 'admin' ? 'bg-indigo-600 border-indigo-400/30' : (currentUser.role === 'guru' ? 'bg-emerald-600 border-emerald-400/30' : 'bg-amber-600 border-amber-400/30')">
+                        <i class="fa-solid" :class="currentUser.role === 'admin' ? 'fa-user-shield' : 'fa-book-bookmark'"></i>
                     </div>
                     <div>
                         <div class="flex items-center gap-2">
                             <h1 class="font-bold text-base sm:text-lg tracking-wide uppercase text-emerald-400 leading-tight">Sistem Jurnal & Pemantauan Guru</h1>
                             <span v-if="isLoggedIn" class="text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider"
-                                  :class="currentUser.role === 'guru' ? 'bg-emerald-900/80 text-emerald-300 border border-emerald-700' : 'bg-amber-900/80 text-amber-300 border border-amber-700'">
+                                  :class="getRoleBadgeClass(currentUser.role)">
                                 {{ getRoleLabel(currentUser.role) }}
                             </span>
                         </div>
-                        <p class="text-[11px] text-slate-300 font-medium tracking-wider">SMA NEGERI 05 BOMBANA &bull; KCD WILAYAH BOMBANAS</p>
+                        <p class="text-[11px] text-slate-300 font-medium tracking-wider">SMA NEGERI 05 BOMBANA &bull; KCD WILAYAH BOMBANA</p>
                     </div>
                 </div>
 
                 <!-- Database Connection Status & User Profile -->
                 <div class="flex items-center gap-3">
-                    <!-- GAS Connection Status Indicator -->
                     <button @click="openGasModal" class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold border transition" :class="gasAppUrl ? 'bg-emerald-950/80 border-emerald-500/50 text-emerald-300 hover:bg-emerald-900' : 'bg-amber-950/80 border-amber-500/50 text-amber-300 hover:bg-amber-900'">
                         <span class="w-2 h-2 rounded-full animate-pulse" :class="gasAppUrl ? 'bg-emerald-400' : 'bg-amber-400'"></span>
                         <span>{{ gasAppUrl ? 'Terhubung GAS Drive' : 'Database GAS Belum Set' }}</span>
@@ -106,15 +106,17 @@
                     <div v-if="isLoggedIn" class="flex items-center gap-4">
                         <div class="flex items-center gap-2 text-right hidden md:flex">
                             <div class="w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xs text-white shadow-inner"
-                                 :class="currentUser.role === 'guru' ? 'bg-emerald-600 border border-emerald-400' : 'bg-amber-600 border border-amber-400'">
+                                 :class="currentUser.role === 'admin' ? 'bg-indigo-600 border border-indigo-400' : (currentUser.role === 'guru' ? 'bg-emerald-600 border border-emerald-400' : 'bg-amber-600 border border-amber-400')">
                                 <i class="fa-solid" :class="getRoleIcon(currentUser.role)"></i>
                             </div>
                             <div>
                                 <p class="text-xs font-bold text-white leading-tight">{{ currentUser.nama }}</p>
-                                <p class="text-[10px]" :class="currentUser.role === 'guru' ? 'text-emerald-300' : 'text-amber-300'">NIP: {{ currentUser.nip }}</p>
+                                <p class="text-[10px]" :class="currentUser.role === 'admin' ? 'text-indigo-300' : (currentUser.role === 'guru' ? 'text-emerald-300' : 'text-amber-300')">
+                                    {{ currentUser.role === 'admin' ? 'Administrator System' : 'NIP: ' + currentUser.nip }}
+                                </p>
                             </div>
                         </div>
-                        <button @click="logout" title="Keluar dari sistem" class="bg-red-600/20 hover:bg-red-600 text-red-200 hover:text-white border border-red-500/30 px-3 py-1.5 rounded-xl text-xs font-medium transition flex items-center gap-2">
+                        <button @click="logout" title="Keluar dari sistem" class="bg-red-600/20 hover:bg-red-600 text-red-200 hover:text-white border border-red-500/30 px-3 py-1.5 rounded-xl text-xs font-medium transition flex items-center gap-2 cursor-pointer">
                             <i class="fa-solid fa-right-from-bracket"></i> <span class="hidden sm:inline">Keluar</span>
                         </button>
                     </div>
@@ -142,16 +144,21 @@
             <div v-if="!isLoggedIn" class="max-w-xl mx-auto my-6 bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden">
                 
                 <!-- Login Role Selector Tabs Header -->
-                <div class="grid grid-cols-2 bg-slate-100 p-1.5 border-b border-slate-200">
+                <div class="grid grid-cols-3 bg-slate-100 p-1.5 border-b border-slate-200">
                     <button @click="loginType = 'guru'" 
                             :class="loginType === 'guru' ? 'bg-white text-emerald-700 font-bold shadow-sm' : 'text-slate-500 hover:text-slate-800 font-medium'"
-                            class="py-3 text-xs sm:text-sm rounded-2xl transition flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-chalkboard-user text-emerald-600"></i> Portal Guru
+                            class="py-3 text-xs sm:text-sm rounded-2xl transition flex items-center justify-center gap-2 cursor-pointer">
+                        <i class="fa-solid fa-chalkboard-user text-emerald-600"></i> <span class="hidden sm:inline">Portal</span> Guru
                     </button>
                     <button @click="loginType = 'monitor'" 
                             :class="loginType === 'monitor' ? 'bg-white text-amber-700 font-bold shadow-sm' : 'text-slate-500 hover:text-slate-800 font-medium'"
-                            class="py-3 text-xs sm:text-sm rounded-2xl transition flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-user-shield text-amber-600"></i> Kepsek / Pengawas / KCD
+                            class="py-3 text-xs sm:text-sm rounded-2xl transition flex items-center justify-center gap-2 cursor-pointer">
+                        <i class="fa-solid fa-user-shield text-amber-600"></i> Pemantau
+                    </button>
+                    <button @click="loginType = 'admin'" 
+                            :class="loginType === 'admin' ? 'bg-white text-indigo-700 font-bold shadow-sm' : 'text-slate-500 hover:text-slate-800 font-medium'"
+                            class="py-3 text-xs sm:text-sm rounded-2xl transition flex items-center justify-center gap-2 cursor-pointer">
+                        <i class="fa-solid fa-key text-indigo-600"></i> Admin
                     </button>
                 </div>
 
@@ -159,14 +166,14 @@
                     <!-- Brand Header for Login -->
                     <div class="text-center space-y-2">
                         <div class="w-16 h-16 rounded-2xl flex items-center justify-center text-2xl mx-auto shadow-inner transition-colors duration-300"
-                             :class="loginType === 'guru' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'">
-                            <i class="fa-solid" :class="loginType === 'guru' ? 'fa-user-graduate' : 'fa-building-columns'"></i>
+                             :class="loginType === 'guru' ? 'bg-emerald-100 text-emerald-700' : (loginType === 'monitor' ? 'bg-amber-100 text-amber-700' : 'bg-indigo-100 text-indigo-700')">
+                            <i class="fa-solid" :class="loginType === 'guru' ? 'fa-user-graduate' : (loginType === 'monitor' ? 'fa-building-columns' : 'fa-user-gear')"></i>
                         </div>
                         <h2 class="text-xl font-extrabold text-slate-800">
-                            {{ loginType === 'guru' ? 'Login Jurnal Harian Guru' : 'Portal Pemantauan & Supervisi' }}
+                            {{ loginType === 'guru' ? 'Login Jurnal Harian Guru' : (loginType === 'monitor' ? 'Portal Pemantauan & Supervisi' : 'Administrator Portal System') }}
                         </h2>
                         <p class="text-xs text-slate-500">
-                            {{ loginType === 'guru' ? 'Akses pengisian jurnal kegiatan mengajar harian guru' : 'Monitoring terpadu oleh Kepala Sekolah, Pengawas Pembina, & KCD' }}
+                            {{ loginType === 'guru' ? 'Akses pengisian jurnal kegiatan mengajar harian guru' : (loginType === 'monitor' ? 'Monitoring terpadu oleh Kepala Sekolah, Pengawas Pembina, & KCD' : 'Kelola akun Guru, Kepala Sekolah, Pengawas Pembina, dan KCD') }}
                         </p>
                     </div>
 
@@ -187,75 +194,30 @@
                         </div>
 
                         <div>
-                            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Username (NIP / NUPTK)</label>
+                            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">
+                                Username {{ loginType === 'admin' ? '(Admin ID)' : '(NIP / NUPTK)' }}
+                            </label>
                             <input v-model="loginForm.username" type="text" 
-                                   :placeholder="loginType === 'guru' ? 'Masukkan NIP / NIK Guru' : 'Masukkan NIP Pemantau'" 
+                                   :placeholder="loginType === 'admin' ? 'Masukkan username admin' : (loginType === 'guru' ? 'Masukkan NIP / NIK Guru' : 'Masukkan NIP Pemantau')" 
                                    class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm outline-none transition"
-                                   :class="loginType === 'guru' ? 'focus:ring-2 focus:ring-emerald-500' : 'focus:ring-2 focus:ring-amber-500'">
+                                   :class="loginType === 'guru' ? 'focus:ring-2 focus:ring-emerald-500' : (loginType === 'monitor' ? 'focus:ring-2 focus:ring-amber-500' : 'focus:ring-2 focus:ring-indigo-500')" required>
                         </div>
 
                         <div>
                             <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Password</label>
                             <input v-model="loginForm.password" type="password" 
-                                   placeholder="Format: TGL-BLN-THN / PIN Akses" 
+                                   placeholder="Masukkan password / PIN akses Anda" 
                                    class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm outline-none transition"
-                                   :class="loginType === 'guru' ? 'focus:ring-2 focus:ring-emerald-500' : 'focus:ring-2 focus:ring-amber-500'">
+                                   :class="loginType === 'guru' ? 'focus:ring-2 focus:ring-emerald-500' : (loginType === 'monitor' ? 'focus:ring-2 focus:ring-amber-500' : 'focus:ring-2 focus:ring-indigo-500')" required>
                         </div>
 
                         <button type="submit" 
-                                class="w-full py-3 text-white rounded-xl text-xs sm:text-sm font-bold shadow-md transition flex items-center justify-center gap-2"
-                                :class="loginType === 'guru' ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-amber-600 hover:bg-amber-700'">
+                                class="w-full py-3 text-white rounded-xl text-xs sm:text-sm font-bold shadow-md transition flex items-center justify-center gap-2 cursor-pointer mt-2"
+                                :class="loginType === 'guru' ? 'bg-emerald-600 hover:bg-emerald-700' : (loginType === 'monitor' ? 'bg-amber-600 hover:bg-amber-700' : 'bg-indigo-600 hover:bg-indigo-700')">
                             <i class="fa-solid fa-right-to-bracket"></i>
-                            Masuk Ke {{ loginType === 'guru' ? 'Portal Guru' : 'Dashboard Pemantauan' }}
+                            Masuk Ke {{ loginType === 'guru' ? 'Portal Guru' : (loginType === 'monitor' ? 'Dashboard Pemantauan' : 'Portal Administrator') }}
                         </button>
                     </form>
-
-                    <!-- Quick Demo Login Shortcuts -->
-                    <div class="pt-4 border-t border-slate-100 space-y-2">
-                        <p class="text-[11px] text-slate-400 font-bold uppercase tracking-wider text-center">Uji Coba Masuk Cepat (Akses Demo):</p>
-                        
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                            <!-- Demo Guru -->
-                            <button @click="quickLogin('19850817 201001 1 002', '17081985', 'guru')" 
-                                    class="py-2 px-3 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-800 rounded-xl text-[11px] font-semibold transition text-left flex items-center gap-2">
-                                <i class="fa-solid fa-chalkboard-user text-emerald-600"></i>
-                                <div>
-                                    <p class="font-bold">Drs. Ahmad Subagja, M.Pd.</p>
-                                    <p class="text-[9px] text-emerald-600">Guru Matematika</p>
-                                </div>
-                            </button>
-
-                            <!-- Demo Kepsek -->
-                            <button @click="quickLogin('19720412 199802 1 001', '12041972', 'kepsek')" 
-                                    class="py-2 px-3 bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-900 rounded-xl text-[11px] font-semibold transition text-left flex items-center gap-2">
-                                <i class="fa-solid fa-user-tie text-amber-600"></i>
-                                <div>
-                                    <p class="font-bold">H. Ramli, S.Pd., M.Si.</p>
-                                    <p class="text-[9px] text-amber-700">Kepala Sekolah</p>
-                                </div>
-                            </button>
-
-                            <!-- Demo Pengawas -->
-                            <button @click="quickLogin('19680325 199403 2 003', '25031968', 'pengawas')" 
-                                    class="py-2 px-3 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-900 rounded-xl text-[11px] font-semibold transition text-left flex items-center gap-2">
-                                <i class="fa-solid fa-clipboard-check text-indigo-600"></i>
-                                <div>
-                                    <p class="font-bold">Dr. Hj. Endang Sulis, M.Pd.</p>
-                                    <p class="text-[9px] text-indigo-700">Pengawas Pembina</p>
-                                </div>
-                            </button>
-
-                            <!-- Demo KCD -->
-                            <button @click="quickLogin('19651108 199201 1 004', '08111965', 'kcd')" 
-                                    class="py-2 px-3 bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-900 rounded-xl text-[11px] font-semibold transition text-left flex items-center gap-2">
-                                <i class="fa-solid fa-landmark text-blue-600"></i>
-                                <div>
-                                    <p class="font-bold">Ir. M. Yusuf, M.M.</p>
-                                    <p class="text-[9px] text-blue-700">Kepala Cabang Dinas (KCD)</p>
-                                </div>
-                            </button>
-                        </div>
-                    </div>
                 </div>
             </div>
 
@@ -266,7 +228,7 @@
                 <div v-if="isSidebarHidden" class="w-full no-print bg-white px-4 py-3 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between text-xs transition-all">
                     <div class="flex items-center gap-3 text-slate-700">
                         <div class="w-8 h-8 rounded-xl flex items-center justify-center font-bold text-white"
-                             :class="currentUser.role === 'guru' ? 'bg-emerald-600' : 'bg-amber-600'">
+                             :class="currentUser.role === 'admin' ? 'bg-indigo-600' : (currentUser.role === 'guru' ? 'bg-emerald-600' : 'bg-amber-600')">
                             <i class="fa-solid fa-sidebar text-sm"></i>
                         </div>
                         <div>
@@ -276,7 +238,7 @@
                     </div>
                     <button @click="toggleSidebar" title="Tampilkan kembali menu navigasi bilah kiri" 
                             class="px-3.5 py-2 text-white rounded-xl text-xs font-semibold shadow-sm transition flex items-center gap-2 cursor-pointer"
-                            :class="currentUser.role === 'guru' ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-amber-600 hover:bg-amber-700'">
+                            :class="currentUser.role === 'admin' ? 'bg-indigo-600 hover:bg-indigo-700' : (currentUser.role === 'guru' ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-amber-600 hover:bg-amber-700')">
                         <i class="fa-solid fa-outdent"></i> Tampilkan Sidebar Menu
                     </button>
                 </div>
@@ -288,22 +250,44 @@
                     <aside v-if="!isSidebarHidden" class="w-full md:w-64 bg-white rounded-2xl border border-slate-200 shadow-sm p-4 space-y-4 shrink-0 no-print transition-all sticky top-4">
                         <div class="flex items-center justify-between pb-3 border-b border-slate-100">
                             <span class="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-2">
-                                <i class="fa-solid fa-compass" :class="currentUser.role === 'guru' ? 'text-emerald-600' : 'text-amber-600'"></i> Navigasi {{ currentUser.role === 'guru' ? 'Guru' : 'Pemantau' }}
+                                <i class="fa-solid fa-compass" :class="currentUser.role === 'admin' ? 'text-indigo-600' : (currentUser.role === 'guru' ? 'text-emerald-600' : 'text-amber-600')"></i> Navigasi {{ getRoleLabel(currentUser.role) }}
                             </span>
                             <button @click="toggleSidebar" title="Sembunyikan Menu Sidebar" class="text-slate-400 hover:text-red-600 hover:bg-red-50 text-xs px-2 py-1 rounded-lg transition flex items-center gap-1 font-semibold cursor-pointer">
                                 <i class="fa-solid fa-xmark"></i> Sembunyikan
                             </button>
                         </div>
 
+                        <!-- NAVIGATION LINKS FOR ADMIN ROLE -->
+                        <nav v-if="currentUser.role === 'admin'" class="space-y-1.5">
+                            <button @click="selectTab('admin-dash')" :class="currentTab === 'admin-dash' ? 'bg-indigo-600 text-white shadow-md font-semibold' : 'text-slate-600 hover:bg-slate-100 font-medium'" class="w-full px-3.5 py-3 rounded-xl text-xs sm:text-sm transition flex items-center justify-start gap-3 text-left cursor-pointer">
+                                <i class="fa-solid fa-chart-pie text-base w-5 text-center"></i>
+                                Dashboard Admin
+                            </button>
+                            <button @click="selectTab('admin-users')" :class="currentTab === 'admin-users' ? 'bg-indigo-600 text-white shadow-md font-semibold' : 'text-slate-600 hover:bg-slate-100 font-medium'" class="w-full px-3.5 py-3 rounded-xl text-xs sm:text-sm transition flex items-center justify-between text-left cursor-pointer">
+                                <div class="flex items-center gap-3">
+                                    <i class="fa-solid fa-users-gear text-base w-5 text-center"></i>
+                                    Kelola Akun User
+                                </div>
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold" :class="currentTab === 'admin-users' ? 'bg-indigo-800 text-white' : 'bg-slate-200 text-slate-700'">{{ userAccountList.length }}</span>
+                            </button>
+                            <button @click="selectTab('monitor-journals')" :class="currentTab === 'monitor-journals' ? 'bg-indigo-600 text-white shadow-md font-semibold' : 'text-slate-600 hover:bg-slate-100 font-medium'" class="w-full px-3.5 py-3 rounded-xl text-xs sm:text-sm transition flex items-center justify-between text-left cursor-pointer">
+                                <div class="flex items-center gap-3">
+                                    <i class="fa-solid fa-book-journal-whills text-base w-5 text-center"></i>
+                                    Monitoring Jurnal
+                                </div>
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold" :class="currentTab === 'monitor-journals' ? 'bg-indigo-800 text-white' : 'bg-slate-200 text-slate-700'">{{ allJournals.length }}</span>
+                            </button>
+                            <button @click="selectTab('settings')" :class="currentTab === 'settings' ? 'bg-indigo-600 text-white shadow-md font-semibold' : 'text-slate-600 hover:bg-slate-100 font-medium'" class="w-full px-3.5 py-3 rounded-xl text-xs sm:text-sm transition flex items-center justify-start gap-3 text-left cursor-pointer">
+                                <i class="fa-solid fa-gear text-base w-5 text-center"></i>
+                                Pengaturan & GAS
+                            </button>
+                        </nav>
+
                         <!-- NAVIGATION LINKS FOR GURU ROLE -->
-                        <nav v-if="currentUser.role === 'guru'" class="space-y-1.5">
+                        <nav v-else-if="currentUser.role === 'guru'" class="space-y-1.5">
                             <button @click="selectTab('dashboard')" :class="currentTab === 'dashboard' ? 'bg-emerald-600 text-white shadow-md font-semibold' : 'text-slate-600 hover:bg-slate-100 font-medium'" class="w-full px-3.5 py-3 rounded-xl text-xs sm:text-sm transition flex items-center justify-start gap-3 text-left cursor-pointer">
                                 <i class="fa-solid fa-chart-pie text-base w-5 text-center"></i>
                                 Dashboard Ringkasan
-                            </button>
-                            <button @click="selectTab('profile')" :class="currentTab === 'profile' ? 'bg-emerald-600 text-white shadow-md font-semibold' : 'text-slate-600 hover:bg-slate-100 font-medium'" class="w-full px-3.5 py-3 rounded-xl text-xs sm:text-sm transition flex items-center justify-start gap-3 text-left cursor-pointer">
-                                <i class="fa-solid fa-id-card text-base w-5 text-center"></i>
-                                Profil Guru
                             </button>
                             <button @click="selectTab('form')" :class="currentTab === 'form' ? 'bg-emerald-600 text-white shadow-md font-semibold' : 'text-slate-600 hover:bg-slate-100 font-medium'" class="w-full px-3.5 py-3 rounded-xl text-xs sm:text-sm transition flex items-center justify-start gap-3 text-left cursor-pointer">
                                 <i class="fa-solid fa-pen-to-square text-base w-5 text-center"></i>
@@ -315,10 +299,6 @@
                                     Riwayat Jurnal
                                 </div>
                                 <span class="px-2 py-0.5 rounded-full text-[10px] font-bold" :class="currentTab === 'history' ? 'bg-emerald-800 text-white' : 'bg-slate-200 text-slate-700'">{{ userJournals.length }}</span>
-                            </button>
-                            <button @click="selectTab('recap')" :class="currentTab === 'recap' ? 'bg-emerald-600 text-white shadow-md font-semibold' : 'text-slate-600 hover:bg-slate-100 font-medium'" class="w-full px-3.5 py-3 rounded-xl text-xs sm:text-sm transition flex items-center justify-start gap-3 text-left cursor-pointer">
-                                <i class="fa-solid fa-file-invoice text-base w-5 text-center"></i>
-                                Rekapitulasi & Cetak
                             </button>
                             <button @click="selectTab('kelas')" :class="currentTab === 'kelas' ? 'bg-emerald-600 text-white shadow-md font-semibold' : 'text-slate-600 hover:bg-slate-100 font-medium'" class="w-full px-3.5 py-3 rounded-xl text-xs sm:text-sm transition flex items-center justify-between text-left cursor-pointer">
                                 <div class="flex items-center gap-3">
@@ -346,10 +326,6 @@
                                 </div>
                                 <span class="px-2 py-0.5 rounded-full text-[10px] font-bold" :class="currentTab === 'monitor-journals' ? 'bg-amber-800 text-white' : 'bg-slate-200 text-slate-700'">{{ allJournals.length }}</span>
                             </button>
-                            <button @click="selectTab('monitor-recap')" :class="currentTab === 'monitor-recap' ? 'bg-amber-600 text-white shadow-md font-semibold' : 'text-slate-600 hover:bg-slate-100 font-medium'" class="w-full px-3.5 py-3 rounded-xl text-xs sm:text-sm transition flex items-center justify-start gap-3 text-left cursor-pointer">
-                                <i class="fa-solid fa-file-pdf text-base w-5 text-center"></i>
-                                Laporan Eksekutif KCD
-                            </button>
                             <button @click="selectTab('settings')" :class="currentTab === 'settings' ? 'bg-amber-600 text-white shadow-md font-semibold' : 'text-slate-600 hover:bg-slate-100 font-medium'" class="w-full px-3.5 py-3 rounded-xl text-xs sm:text-sm transition flex items-center justify-start gap-3 text-left cursor-pointer">
                                 <i class="fa-solid fa-gear text-base w-5 text-center"></i>
                                 Pengaturan GAS Database
@@ -359,7 +335,7 @@
                         <div class="pt-4 border-t border-slate-100">
                             <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs text-slate-600 space-y-1">
                                 <p class="font-bold text-slate-800 flex items-center gap-1.5">
-                                    <i class="fa-solid fa-graduation-cap" :class="currentUser.role === 'guru' ? 'text-emerald-600' : 'text-amber-600'"></i> SMAN 05 Bombana
+                                    <i class="fa-solid fa-graduation-cap" :class="currentUser.role === 'admin' ? 'text-indigo-600' : (currentUser.role === 'guru' ? 'text-emerald-600' : 'text-amber-600')"></i> SMAN 05 Bombana
                                 </p>
                                 <p class="text-[10px] text-slate-500">Database: {{ gasAppUrl ? 'Google Sheets & Drive' : 'Local Dynamic Cache' }}</p>
                             </div>
@@ -368,6 +344,211 @@
 
                     <!-- WORKSPACE MAIN CONTENT -->
                     <div class="w-full min-w-0 flex-grow">
+
+                        <!-- VIEW ADMIN: DASHBOARD UTAMA ADMIN -->
+                        <div v-if="currentTab === 'admin-dash' && currentUser.role === 'admin'" class="space-y-6">
+                            
+                            <!-- Welcome Admin Banner Card -->
+                            <div class="p-6 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 rounded-3xl text-white shadow-md relative overflow-hidden border border-indigo-900/50">
+                                <div class="absolute -right-10 -bottom-10 opacity-10 text-indigo-300 pointer-events-none">
+                                    <i class="fa-solid fa-user-shield text-[220px]"></i>
+                                </div>
+                                <div class="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                                    <div class="space-y-1.5">
+                                        <span class="px-3 py-1 bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-[11px] font-bold rounded-full inline-flex items-center gap-1.5">
+                                            <i class="fa-solid fa-shield-halved"></i> Modul Pengelola Akun System
+                                        </span>
+                                        <h2 class="text-xl sm:text-2xl font-black text-white leading-tight">
+                                            Selamat Datang, {{ currentUser.nama }}
+                                        </h2>
+                                        <p class="text-xs text-indigo-200">
+                                            Anda memiliki akses penuh untuk menambah, mengedit, dan mereset akun login Guru, Kepala Sekolah, Pengawas Pembina, dan KCD.
+                                        </p>
+                                    </div>
+                                    <button @click="openAddUserModal" class="px-5 py-3 bg-indigo-500 hover:bg-indigo-600 text-white font-extrabold rounded-2xl text-xs shadow-lg transition flex items-center gap-2 shrink-0 cursor-pointer">
+                                        <i class="fa-solid fa-user-plus text-base"></i> Buat Akun Baru
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Account Counts Stat Summary Cards -->
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+                                    <div class="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-xl shrink-0">
+                                        <i class="fa-solid fa-chalkboard-user"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Akun Guru</p>
+                                        <h3 class="text-xl font-extrabold text-slate-800">{{ getAccountCountByRole('guru') }} <span class="text-xs font-normal text-slate-500">orang</span></h3>
+                                    </div>
+                                </div>
+
+                                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+                                    <div class="w-12 h-12 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center text-xl shrink-0">
+                                        <i class="fa-solid fa-user-tie"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Kepala Sekolah</p>
+                                        <h3 class="text-xl font-extrabold text-slate-800">{{ getAccountCountByRole('kepsek') }} <span class="text-xs font-normal text-slate-500">orang</span></h3>
+                                    </div>
+                                </div>
+
+                                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+                                    <div class="w-12 h-12 rounded-2xl bg-teal-100 text-teal-700 flex items-center justify-center text-xl shrink-0">
+                                        <i class="fa-solid fa-clipboard-check"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Pengawas Pembina</p>
+                                        <h3 class="text-xl font-extrabold text-slate-800">{{ getAccountCountByRole('pengawas') }} <span class="text-xs font-normal text-slate-500">orang</span></h3>
+                                    </div>
+                                </div>
+
+                                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+                                    <div class="w-12 h-12 rounded-2xl bg-blue-100 text-blue-700 flex items-center justify-center text-xl shrink-0">
+                                        <i class="fa-solid fa-landmark"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Pejabat KCD</p>
+                                        <h3 class="text-xl font-extrabold text-slate-800">{{ getAccountCountByRole('kcd') }} <span class="text-xs font-normal text-slate-500">orang</span></h3>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- User Accounts Summary Table preview -->
+                            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-4">
+                                <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                                    <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                                        <i class="fa-solid fa-users text-indigo-600"></i> Ringkasan Pengguna Terdaftar
+                                    </h3>
+                                    <button @click="selectTab('admin-users')" class="text-xs font-semibold text-indigo-600 hover:text-indigo-700 flex items-center gap-1 cursor-pointer">
+                                        Kelola Semua Akun <i class="fa-solid fa-arrow-right"></i>
+                                    </button>
+                                </div>
+
+                                <div class="overflow-x-auto rounded-xl border border-slate-200">
+                                    <table class="w-full text-left text-xs text-slate-600">
+                                        <thead class="bg-slate-100 text-slate-700 uppercase font-bold text-[10px] border-b border-slate-200">
+                                            <tr>
+                                                <th class="p-3">Nama Lengkap</th>
+                                                <th class="p-3">Username / NIP</th>
+                                                <th class="p-3">Password</th>
+                                                <th class="p-3">Jabatan & Peran</th>
+                                                <th class="p-3 text-center">Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-slate-100">
+                                            <tr v-for="u in userAccountList.slice(0, 5)" :key="u.username" class="hover:bg-slate-50 transition">
+                                                <td class="p-3 font-bold text-slate-800">{{ u.nama }}</td>
+                                                <td class="p-3 font-mono text-[11px] text-slate-700">{{ u.username }}</td>
+                                                <td class="p-3 font-mono text-[11px] text-slate-500">
+                                                    <span class="bg-slate-100 px-2 py-0.5 rounded border border-slate-200">{{ u.password }}</span>
+                                                </td>
+                                                <td class="p-3">
+                                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold inline-block" :class="getRoleBadgeClass(u.role)">
+                                                        {{ getRoleLabel(u.role) }}
+                                                    </span>
+                                                    <span v-if="u.mapelUtama" class="text-[10px] text-slate-500 ml-1 font-medium">({{ u.mapelUtama }})</span>
+                                                </td>
+                                                <td class="p-3 text-center">
+                                                    <span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-md font-bold text-[10px]">Aktif</span>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <!-- VIEW ADMIN: KELOLA AKUN USER (GURU, KEPSEK, PENGAWAS, KCD) -->
+                        <div v-if="currentTab === 'admin-users' && currentUser.role === 'admin'" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6 space-y-5">
+                            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-100 pb-4">
+                                <div>
+                                    <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                                        <i class="fa-solid fa-users-gear text-indigo-600"></i> Manajemen Akun User & Hak Akses
+                                    </h2>
+                                    <p class="text-xs text-slate-500">Kelola akun login untuk Guru, Kepala Sekolah, Pengawas Pembina, dan KCD.</p>
+                                </div>
+                                <button @click="openAddUserModal" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-md transition flex items-center gap-2 cursor-pointer">
+                                    <i class="fa-solid fa-plus"></i> Tambah Akun Baru
+                                </button>
+                            </div>
+
+                            <!-- Filter & Search Bar for Accounts -->
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Cari Nama / Username / NIP</label>
+                                    <input v-model="userSearchQuery" type="text" placeholder="Masukkan pencarian..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-indigo-500">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Filter Jabatan / Role</label>
+                                    <select v-model="userFilterRole" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-indigo-500 font-semibold text-slate-700">
+                                        <option value="">Semua Peran / Role</option>
+                                        <option value="guru">Guru Mata Pelajaran</option>
+                                        <option value="kepsek">Kepala Sekolah</option>
+                                        <option value="pengawas">Pengawas Pembina</option>
+                                        <option value="kcd">Kepala Cabang Dinas (KCD)</option>
+                                    </select>
+                                </div>
+                                <div class="flex items-end">
+                                    <button @click="resetUserFilters" class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-semibold border transition cursor-pointer">
+                                        Reset Filter
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Accounts Table -->
+                            <div class="overflow-x-auto rounded-xl border border-slate-200">
+                                <table class="w-full text-left text-xs text-slate-600">
+                                    <thead class="bg-slate-100 text-slate-700 uppercase font-bold text-[10px] border-b border-slate-200">
+                                        <tr>
+                                            <th class="p-3 w-10 text-center">No</th>
+                                            <th class="p-3">Nama Lengkap</th>
+                                            <th class="p-3">Username / NIP</th>
+                                            <th class="p-3">Password Akses</th>
+                                            <th class="p-3">Jabatan & Role</th>
+                                            <th class="p-3 text-center w-28">Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-slate-100">
+                                        <tr v-if="filteredUserAccounts.length === 0">
+                                            <td colspan="6" class="p-8 text-center text-slate-400">
+                                                Tidak ada data akun user yang sesuai dengan pencarian.
+                                            </td>
+                                        </tr>
+                                        <tr v-for="(user, idx) in filteredUserAccounts" :key="user.username" class="hover:bg-slate-50 transition">
+                                            <td class="p-3 text-center font-bold text-slate-400">{{ idx + 1 }}</td>
+                                            <td class="p-3">
+                                                <div class="font-bold text-slate-800">{{ user.nama }}</div>
+                                                <div class="text-[10px] text-slate-400">{{ user.jabatan || 'Tenaga Pendidik / Pejabat' }}</div>
+                                            </td>
+                                            <td class="p-3 font-mono font-semibold text-slate-700">{{ user.username }}</td>
+                                            <td class="p-3">
+                                                <span class="bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200 font-mono text-[11px] font-bold text-slate-800">
+                                                    {{ user.password }}
+                                                </span>
+                                            </td>
+                                            <td class="p-3">
+                                                <span class="px-2.5 py-1 rounded-full text-[10px] font-bold inline-block" :class="getRoleBadgeClass(user.role)">
+                                                    {{ getRoleLabel(user.role) }}
+                                                </span>
+                                                <div v-if="user.mapelUtama" class="text-[10px] text-slate-500 mt-0.5">Mapel: {{ user.mapelUtama }}</div>
+                                            </td>
+                                            <td class="p-3 text-center whitespace-nowrap">
+                                                <div class="flex items-center justify-center gap-1.5">
+                                                    <button @click="editUserAccount(user)" title="Edit Akun" class="p-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg transition cursor-pointer">
+                                                        <i class="fa-solid fa-pen-to-square"></i>
+                                                    </button>
+                                                    <button @click="confirmDeleteUser(user)" title="Hapus Akun" class="p-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition cursor-pointer">
+                                                        <i class="fa-solid fa-trash-can"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
 
                         <!-- TAB 0 (GURU): DASHBOARD RINGKASAN -->
                         <div v-if="currentTab === 'dashboard' && currentUser.role === 'guru'" class="space-y-6">
@@ -390,7 +571,7 @@
                                         </p>
                                     </div>
                                     <div class="flex items-center gap-2">
-                                        <button @click="selectTab('form')" class="px-5 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl text-xs font-bold shadow-lg transition flex items-center gap-2.5 shrink-0">
+                                        <button @click="selectTab('form')" class="px-5 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl text-xs font-bold shadow-lg transition flex items-center gap-2.5 shrink-0 cursor-pointer">
                                             <i class="fa-solid fa-plus-circle text-base"></i> Input Jurnal Baru
                                         </button>
                                     </div>
@@ -444,9 +625,9 @@
                             <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-4">
                                 <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                                     <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
-                                        <i class="fa-solid fa-history text-emerald-600"></i> Entri Jurnal Terbaru Saya
+                                        <i class="fa-solid fa-clock-rotate-left text-emerald-600"></i> Jurnal Terbaru Saya
                                     </h3>
-                                    <button @click="selectTab('history')" class="text-xs font-semibold text-emerald-600 hover:text-emerald-700 flex items-center gap-1">
+                                    <button @click="selectTab('history')" class="text-xs font-semibold text-emerald-600 hover:text-emerald-700 flex items-center gap-1 cursor-pointer">
                                         Lihat Semua <i class="fa-solid fa-arrow-right"></i>
                                     </button>
                                 </div>
@@ -455,43 +636,37 @@
                                     <table class="w-full text-left text-xs text-slate-600">
                                         <thead class="bg-slate-100 text-slate-700 uppercase font-bold text-[10px] border-b border-slate-200">
                                             <tr>
-                                                <th class="p-3">Tanggal & Waktu</th>
-                                                <th class="p-3">Indikator & Kegiatan</th>
-                                                <th class="p-3">Uraian Kegiatan</th>
-                                                <th class="p-3 text-center">Status Supervisi</th>
+                                                <th class="p-3">Tanggal / Waktu</th>
+                                                <th class="p-3">Kelas & Jam</th>
+                                                <th class="p-3">Mata Pelajaran & Materi</th>
+                                                <th class="p-3">Kehadiran Siswa</th>
                                                 <th class="p-3 text-center">Aksi</th>
                                             </tr>
                                         </thead>
                                         <tbody class="divide-y divide-slate-100">
                                             <tr v-if="userJournals.length === 0">
-                                                <td colspan="5" class="p-6 text-center text-slate-400">
-                                                    Belum ada entri jurnal terbaru. Silakan buat entri pertama Anda!
+                                                <td colspan="5" class="p-8 text-center text-slate-400">
+                                                    Belum ada jurnal yang diinput. Klik "Input Jurnal Baru" untuk menambahkan.
                                                 </td>
                                             </tr>
-                                            <tr v-for="j in recentUserJournals" :key="j.id" class="hover:bg-slate-50 transition">
-                                                <td class="p-3 whitespace-nowrap">
-                                                    <div class="font-bold text-slate-800">{{ formatDate(j.tanggal) }}</div>
-                                                    <div class="text-[10px] text-slate-400">{{ j.jam }}</div>
+                                            <tr v-for="j in userJournals.slice(0, 5)" :key="j.id" class="hover:bg-slate-50 transition">
+                                                <td class="p-3 font-medium text-slate-800">{{ j.tanggal }}</td>
+                                                <td class="p-3">
+                                                    <span class="font-bold text-slate-800">{{ j.kelas }}</span>
+                                                    <span class="text-[10px] block text-slate-400">Jam Ke: {{ j.jamKe }}</span>
                                                 </td>
                                                 <td class="p-3">
-                                                    <span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-semibold text-[10px] inline-block mb-1">
-                                                        {{ j.indikator }}
-                                                    </span>
-                                                    <div class="font-semibold text-slate-700">{{ j.submenu }}</div>
-                                                    <div v-if="j.kelas" class="text-[10px] text-amber-700 font-bold">Kelas: {{ j.kelas }}</div>
+                                                    <div class="font-bold text-emerald-700">{{ j.mapel }}</div>
+                                                    <div class="text-[11px] text-slate-600 truncate max-w-xs">{{ j.materi }}</div>
                                                 </td>
-                                                <td class="p-3 max-w-xs">
-                                                    <p class="line-clamp-2 text-slate-700">{{ j.uraian }}</p>
-                                                </td>
-                                                <td class="p-3 text-center whitespace-nowrap">
-                                                    <span class="px-2.5 py-1 rounded-full text-[10px] font-bold inline-flex items-center gap-1" :class="getStatusBadgeClass(j.statusSupervisi)">
-                                                        <i class="fa-solid" :class="getStatusIcon(j.statusSupervisi)"></i>
-                                                        {{ j.statusSupervisi || 'Belum Diperiksa' }}
+                                                <td class="p-3">
+                                                    <span class="text-[10px] bg-slate-100 px-2 py-1 rounded border border-slate-200 font-medium">
+                                                        H: {{ j.hadir || 0 }} | S: {{ j.sakit || 0 }} | I: {{ j.izin || 0 }} | A: {{ j.alfa || 0 }}
                                                     </span>
                                                 </td>
-                                                <td class="p-3 text-center whitespace-nowrap">
-                                                    <button @click="openDetailModal(j)" title="Lihat Detail" class="p-1.5 bg-slate-100 hover:bg-emerald-100 text-slate-600 hover:text-emerald-700 rounded-lg transition">
-                                                        <i class="fa-solid fa-eye"></i>
+                                                <td class="p-3 text-center">
+                                                    <button @click="viewJournalDetail(j)" class="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-lg text-[11px] font-semibold transition cursor-pointer">
+                                                        Detail
                                                     </button>
                                                 </td>
                                             </tr>
@@ -502,1220 +677,328 @@
 
                         </div>
 
-                        <!-- PORTAL PEMANTAUAN: DASHBOARD PEMANTAUAN (KEPSEK / PENGAWAS / KCD) -->
-                        <div v-if="currentTab === 'monitor-dash' && currentUser.role !== 'guru'" class="space-y-6">
-                            
-                            <!-- Executive Banner Header -->
-                            <div class="p-6 bg-gradient-to-r from-slate-900 via-amber-950 to-slate-900 rounded-3xl text-white shadow-md relative overflow-hidden border border-amber-900/50">
-                                <div class="absolute -right-10 -bottom-10 opacity-10 text-amber-300 pointer-events-none">
-                                    <i class="fa-solid fa-building-columns text-[220px]"></i>
+                        <!-- MONITORING & SETTINGS VIEW (OTHER ROLES / TABS) -->
+                        <div v-if="currentTab === 'monitor-dash'" class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                            <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                                <i class="fa-solid fa-chart-line text-amber-600"></i> Dashboard Pemantauan KCD & Pengawas
+                            </h2>
+                            <p class="text-xs text-slate-500">Ringkasan aktivitas keaktifan jurnal guru seluruh kelas SMA Negeri 05 Bombana.</p>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+                                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                                    <p class="text-xs text-slate-400 font-bold uppercase">Total Guru Terdaftar</p>
+                                    <p class="text-2xl font-black text-slate-800">{{ getAccountCountByRole('guru') }} Orang</p>
                                 </div>
-                                <div class="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                                    <div class="space-y-1.5">
-                                        <span class="px-3 py-1 bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[11px] font-bold rounded-full inline-flex items-center gap-1.5">
-                                            <i class="fa-solid fa-shield-halved"></i> Modul Supervisi Eksekutif & Pemantauan
-                                        </span>
-                                        <h2 class="text-xl sm:text-2xl font-black text-white leading-tight">
-                                            {{ currentUser.nama }}
-                                        </h2>
-                                        <p class="text-xs text-amber-200 font-medium">
-                                            Jabatan: {{ getRoleLabel(currentUser.role) }} &bull; NIP: {{ currentUser.nip }}
-                                        </p>
-                                    </div>
-                                    <button @click="selectTab('monitor-journals')" class="px-5 py-3 bg-amber-500 hover:bg-amber-600 text-slate-950 font-extrabold rounded-2xl text-xs shadow-lg transition flex items-center gap-2 shrink-0">
-                                        <i class="fa-solid fa-clipboard-check text-base"></i> Buka Supervisi Jurnal
-                                    </button>
+                                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                                    <p class="text-xs text-slate-400 font-bold uppercase">Total Entry Jurnal Masuk</p>
+                                    <p class="text-2xl font-black text-amber-600">{{ allJournals.length }} Laporan</p>
+                                </div>
+                                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                                    <p class="text-xs text-slate-400 font-bold uppercase">Status Integrasi Spreadsheet</p>
+                                    <p class="text-sm font-bold" :class="gasAppUrl ? 'text-emerald-600' : 'text-amber-600'">
+                                        {{ gasAppUrl ? 'Terhubung Google Drive' : 'Mode Cache Lokal' }}
+                                    </p>
                                 </div>
                             </div>
-
-                            <!-- Executive Stat Overview -->
-                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
-                                    <div class="w-12 h-12 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center text-xl shrink-0">
-                                        <i class="fa-solid fa-users text-amber-600"></i>
-                                    </div>
-                                    <div>
-                                        <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Total Guru Terdaftar</p>
-                                        <h3 class="text-xl font-extrabold text-slate-800">{{ teacherList.length }} <span class="text-xs font-normal text-slate-500">guru</span></h3>
-                                    </div>
-                                </div>
-
-                                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
-                                    <div class="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-xl shrink-0">
-                                        <i class="fa-solid fa-book-journal-whills"></i>
-                                    </div>
-                                    <div>
-                                        <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Total Jurnal Masuk</p>
-                                        <h3 class="text-xl font-extrabold text-slate-800">{{ allJournals.length }} <span class="text-xs font-normal text-slate-500">entri</span></h3>
-                                    </div>
-                                </div>
-
-                                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
-                                    <div class="w-12 h-12 rounded-2xl bg-blue-100 text-blue-700 flex items-center justify-center text-xl shrink-0">
-                                        <i class="fa-solid fa-check-double"></i>
-                                    </div>
-                                    <div>
-                                        <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Sudah Disupervisi</p>
-                                        <h3 class="text-xl font-extrabold text-slate-800">{{ verifiedJournalsCount }} <span class="text-xs font-normal text-slate-500">entri</span></h3>
-                                    </div>
-                                </div>
-
-                                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
-                                    <div class="w-12 h-12 rounded-2xl bg-rose-100 text-rose-700 flex items-center justify-center text-xl shrink-0">
-                                        <i class="fa-solid fa-clock"></i>
-                                    </div>
-                                    <div>
-                                        <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Perlu Peninjauan</p>
-                                        <h3 class="text-xl font-extrabold text-rose-600">{{ pendingJournalsCount }} <span class="text-xs font-normal text-slate-500">entri</span></h3>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Teacher Participation Breakdown Card -->
-                            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-4">
-                                <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                                    <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
-                                        <i class="fa-solid fa-user-check text-amber-600"></i> Pemantauan Partisipasi Guru
-                                    </h3>
-                                    <span class="text-[11px] text-slate-400 font-medium">Laporan Aktif</span>
-                                </div>
-
-                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                    <div v-for="teacher in teacherList" :key="teacher.nip" class="p-4 bg-slate-50 rounded-2xl border border-slate-200 flex flex-col justify-between gap-3">
-                                        <div class="flex items-start gap-3">
-                                            <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-800 font-bold flex items-center justify-center text-sm shrink-0">
-                                                <i class="fa-solid fa-user-tie"></i>
-                                            </div>
-                                            <div>
-                                                <h4 class="font-bold text-slate-800 text-xs leading-tight">{{ teacher.nama }}</h4>
-                                                <p class="text-[10px] text-slate-500 font-medium">NIP: {{ teacher.nip }}</p>
-                                                <p class="text-[10px] text-emerald-700 font-semibold mt-0.5">{{ teacher.mapelUtama }}</p>
-                                            </div>
-                                        </div>
-
-                                        <div class="pt-2 border-t border-slate-200 flex items-center justify-between text-xs">
-                                            <span class="text-slate-500 font-medium">Jurnal Dikirim:</span>
-                                            <span class="font-extrabold text-slate-800 bg-white px-2.5 py-1 rounded-lg border border-slate-200">
-                                                {{ getTeacherJournalCount(teacher.nip) }} Entri
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
                         </div>
 
-                        <!-- PORTAL PEMANTAUAN: LIST MONITORING SEMUA JURNAL GURU -->
-                        <div v-if="currentTab === 'monitor-journals'" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6 space-y-4">
-                            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-100 pb-4">
+                        <div v-if="currentTab === 'settings'" class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                            <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                                <i class="fa-solid fa-gear text-slate-700"></i> Pengaturan Aplikasi & Integrasi Database
+                            </h2>
+                            <div class="space-y-3 pt-2">
                                 <div>
-                                    <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
-                                        <i class="fa-solid fa-list-check text-amber-600"></i> Monitoring & Supervisi Jurnal Guru
-                                    </h2>
-                                    <p class="text-xs text-slate-500">Peninjauan berkas jurnal harian seluruh guru SMAN 05 Bombana.</p>
+                                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1">URL Web App Google Apps Script (GAS)</label>
+                                    <input v-model="gasAppUrl" type="url" placeholder="https://script.google.com/macros/s/.../exec" class="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-xs font-mono outline-none focus:ring-2 focus:ring-emerald-500">
                                 </div>
-                                <button @click="fetchDataFromGas" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold border transition flex items-center gap-2">
-                                    <i class="fa-solid fa-rotate text-amber-600"></i> Sync Database GAS
+                                <button @click="saveGasUrl" class="px-4 py-2 bg-emerald-600 text-white rounded-xl text-xs font-bold hover:bg-emerald-700 transition cursor-pointer">
+                                    Simpan Integrasi GAS
                                 </button>
-                            </div>
-
-                            <!-- Advanced Monitoring Filters -->
-                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                                <div>
-                                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Cari Kata Kunci</label>
-                                    <input v-model="searchQuery" type="text" placeholder="Cari nama guru, uraian..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-amber-500">
-                                </div>
-                                <div>
-                                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Filter Guru</label>
-                                    <select v-model="filterGuru" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-amber-500">
-                                        <option value="">Semua Guru</option>
-                                        <option v-for="t in teacherList" :key="t.nip" :value="t.nip">{{ t.nama }}</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Filter Indikator</label>
-                                    <select v-model="filterIndikator" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-amber-500">
-                                        <option value="">Semua Indikator</option>
-                                        <option v-for="(subList, category) in categoryMap" :key="category" :value="category">{{ category }}</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Status Supervisi</label>
-                                    <select v-model="filterStatus" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-amber-500">
-                                        <option value="">Semua Status</option>
-                                        <option value="Belum Diperiksa">Belum Diperiksa</option>
-                                        <option value="Disetujui Kepsek">Disetujui Kepsek</option>
-                                        <option value="Diverifikasi Pengawas">Diverifikasi Pengawas</option>
-                                        <option value="Ditinjau KCD">Ditinjau KCD</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <!-- Table All Teacher Journals -->
-                            <div class="overflow-x-auto rounded-xl border border-slate-200">
-                                <table class="w-full text-left text-xs text-slate-600">
-                                    <thead class="bg-slate-100 text-slate-700 uppercase font-bold text-[10px] border-b border-slate-200">
-                                        <tr>
-                                            <th class="p-3">Nama Guru & NIP</th>
-                                            <th class="p-3">Tanggal & Waktu</th>
-                                            <th class="p-3">Indikator & Kegiatan</th>
-                                            <th class="p-3">Uraian Ringkas</th>
-                                            <th class="p-3 text-center">Status Supervisi</th>
-                                            <th class="p-3 text-center">Aksi Supervisi</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="divide-y divide-slate-100">
-                                        <tr v-if="filteredAllJournals.length === 0">
-                                            <td colspan="6" class="p-8 text-center text-slate-400">
-                                                Tidak ditemukan entri jurnal harian yang sesuai filter.
-                                            </td>
-                                        </tr>
-                                        <tr v-for="j in filteredAllJournals" :key="j.id" class="hover:bg-slate-50 transition">
-                                            <td class="p-3">
-                                                <div class="font-bold text-slate-800">{{ j.namaGuru || 'Drs. Ahmad Subagja, M.Pd.' }}</div>
-                                                <div class="text-[10px] text-slate-400">NIP: {{ j.nipGuru || j.nip }}</div>
-                                            </td>
-                                            <td class="p-3 whitespace-nowrap">
-                                                <div class="font-bold text-slate-800">{{ formatDate(j.tanggal) }}</div>
-                                                <div class="text-[10px] text-slate-400">{{ j.jam }}</div>
-                                            </td>
-                                            <td class="p-3">
-                                                <span class="px-2 py-0.5 bg-amber-100 text-amber-900 rounded font-semibold text-[10px] inline-block mb-1">
-                                                    {{ j.indikator }}
-                                                </span>
-                                                <div class="font-semibold text-slate-700">{{ j.submenu }}</div>
-                                            </td>
-                                            <td class="p-3 max-w-xs">
-                                                <p class="line-clamp-2 text-slate-700">{{ j.uraian }}</p>
-                                            </td>
-                                            <td class="p-3 text-center whitespace-nowrap">
-                                                <span class="px-2.5 py-1 rounded-full text-[10px] font-bold inline-flex items-center gap-1" :class="getStatusBadgeClass(j.statusSupervisi)">
-                                                    <i class="fa-solid" :class="getStatusIcon(j.statusSupervisi)"></i>
-                                                    {{ j.statusSupervisi || 'Belum Diperiksa' }}
-                                                </span>
-                                            </td>
-                                            <td class="p-3 text-center whitespace-nowrap">
-                                                <button @click="openSupervisionModal(j)" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-semibold shadow-xs transition flex items-center justify-center gap-1.5 mx-auto">
-                                                    <i class="fa-solid fa-signature"></i> Supervisi
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-
-                        <!-- TAB 1 (GURU): FORM INPUT JURNAL -->
-                        <div v-if="currentTab === 'form' && currentUser.role === 'guru'" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6 space-y-5">
-                            
-                            <!-- Card Profil Guru Ringkas -->
-                            <div class="p-3.5 bg-slate-900 text-white rounded-xl shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3 border border-slate-800">
-                                <div class="flex items-center gap-3 w-full sm:w-auto">
-                                    <div class="w-10 h-10 bg-emerald-600 text-white rounded-lg flex items-center justify-center font-bold text-lg shrink-0">
-                                        <i class="fa-solid fa-user-tie"></i>
-                                    </div>
-                                    <div class="min-w-0">
-                                        <div class="flex items-center gap-2">
-                                            <h3 class="font-bold text-xs sm:text-sm text-emerald-400 truncate">{{ currentUser.nama }}</h3>
-                                            <span class="text-[9px] bg-emerald-900/80 text-emerald-300 px-2 py-0.5 rounded-full border border-emerald-700 shrink-0 font-medium">ASN Aktif</span>
-                                        </div>
-                                        <p class="text-[11px] text-slate-300">NIP: {{ currentUser.nip }} &bull; {{ currentUser.jabatan }} ({{ currentUser.mapelUtama }})</p>
-                                    </div>
-                                </div>
-                                <button type="button" @click="selectTab('profile')" class="text-[11px] bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white px-3 py-1.5 rounded-lg border border-slate-700 transition flex items-center gap-1.5 shrink-0">
-                                    <i class="fa-solid fa-user-gear text-emerald-400"></i> Edit Profil
-                                </button>
-                            </div>
-
-                            <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-2 border-b border-slate-100 pb-4">
-                                <div>
-                                    <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
-                                        <i class="fa-solid fa-pen-to-square text-emerald-600"></i> Form Input Jurnal Harian Guru
-                                    </h2>
-                                    <p class="text-xs text-slate-500">Isi rincian kegiatan harian Anda. Berkas bukti akan diunggah otomatis ke Google Drive.</p>
-                                </div>
-                                <span class="text-xs font-semibold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-lg border border-emerald-200 self-start sm:self-auto">
-                                    <i class="fa-solid fa-calendar-day"></i> {{ todayFormatted }}
-                                </span>
-                            </div>
-
-                            <form @submit.prevent="saveJournal" class="space-y-5">
-                                
-                                <!-- 1. Indikator Kegiatan & Submenu Dropdown -->
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div>
-                                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1.5">Indikator Kegiatan <span class="text-red-500">*</span></label>
-                                        <select v-model="formData.indikator" @change="onIndikatorChange" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-emerald-500 focus:bg-white outline-none transition font-medium">
-                                            <option value="" disabled>-- Pilih Indikator Kegiatan --</option>
-                                            <option v-for="(subList, category) in categoryMap" :key="category" :value="category">
-                                                {{ category }}
-                                            </option>
-                                        </select>
-                                    </div>
-
-                                    <div>
-                                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1.5">Kegiatan <span class="text-red-500">*</span></label>
-                                        <select v-model="formData.submenu" :disabled="!formData.indikator" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-emerald-500 focus:bg-white outline-none transition font-medium disabled:bg-slate-100 disabled:text-slate-400">
-                                            <option value="" disabled>-- Pilih Kegiatan --</option>
-                                            <option v-for="sub in currentSubmenus" :key="sub" :value="sub">
-                                                {{ sub }}
-                                            </option>
-                                        </select>
-                                    </div>
-                                </div>
-
-                                <!-- Conditional Fields: Kelas & Mapel -->
-                                <div v-if="formData.submenu === 'Pelaksanaan Tatap Muka Kelas'" class="p-4 bg-amber-50/70 border border-amber-200 rounded-xl space-y-3 transition-all">
-                                    <div class="flex items-center justify-between">
-                                        <div class="flex items-center gap-2 text-amber-800 font-bold text-xs uppercase tracking-wider">
-                                            <i class="fa-solid fa-chalkboard-user"></i> Detail Pembelajaran Tatap Muka
-                                        </div>
-                                        <button type="button" @click="selectTab('kelas')" class="text-[11px] font-bold text-amber-800 hover:underline flex items-center gap-1">
-                                            <i class="fa-solid fa-gear"></i> Kelola Daftar Kelas
-                                        </button>
-                                    </div>
-                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                        <div>
-                                            <label class="block text-xs font-semibold text-slate-700 mb-1">Kelas <span class="text-red-500">*</span></label>
-                                            <select v-model="formData.kelas" required class="w-full bg-white border border-amber-300 rounded-xl px-3 py-2 text-xs sm:text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
-                                                <option value="" disabled>-- Pilih Kelas --</option>
-                                                <option v-for="k in kelasList" :key="k.id || k.nama" :value="k.nama">
-                                                    {{ k.nama }} {{ k.tingkat ? '(' + k.tingkat + ')' : '' }}
-                                                </option>
-                                            </select>
-                                        </div>
-                                        <div>
-                                            <label class="block text-xs font-semibold text-slate-700 mb-1">Mata Pelajaran (Mapel) <span class="text-red-500">*</span></label>
-                                            <input v-model="formData.mapel" type="text" placeholder="Contoh: Matematika Wajib" required class="w-full bg-white border border-amber-300 rounded-xl px-3 py-2 text-xs sm:text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Waktu & Lokasi -->
-                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                                    <div>
-                                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1.5">Tanggal <span class="text-red-500">*</span></label>
-                                        <input v-model="formData.tanggal" type="date" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
-                                    </div>
-                                    <div>
-                                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1.5">Jam / Rentang Waktu <span class="text-red-500">*</span></label>
-                                        <input v-model="formData.jam" type="text" placeholder="Contoh: 07:30 - 09:00 WITA" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
-                                    </div>
-                                    <div>
-                                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1.5">Lokasi Kegiatan <span class="text-red-500">*</span></label>
-                                        <input v-model="formData.lokasi" type="text" placeholder="Contoh: Ruang Kelas XII IPA 1" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
-                                    </div>
-                                </div>
-
-                                <!-- Text Areas -->
-                                <div class="space-y-4">
-                                    <div>
-                                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Uraian Kegiatan <span class="text-red-500">*</span></label>
-                                        <textarea v-model="formData.uraian" rows="3" required placeholder="Jelaskan aktivitas atau agenda kegiatan..." class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-xs sm:text-sm focus:ring-2 focus:ring-emerald-500 outline-none transition"></textarea>
-                                    </div>
-
-                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                        <div>
-                                            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Catatan / Hasil Kegiatan <span class="text-red-500">*</span></label>
-                                            <textarea v-model="formData.hasil" rows="3" required placeholder="Hasil akhir atau capaian kegiatan..." class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-xs sm:text-sm focus:ring-2 focus:ring-emerald-500 outline-none transition"></textarea>
-                                        </div>
-                                        <div>
-                                            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Refleksi Mandiri <span class="text-red-500">*</span></label>
-                                            <textarea v-model="formData.refleksi" rows="3" required placeholder="Evaluasi mandiri..." class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-xs sm:text-sm focus:ring-2 focus:ring-emerald-500 outline-none transition"></textarea>
-                                        </div>
-                                        <div>
-                                            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Pembinaan / Rekomendasi Mandiri <span class="text-red-500">*</span></label>
-                                            <textarea v-model="formData.pembinaan" rows="3" required placeholder="Tindak lanjut atau solusi..." class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-xs sm:text-sm focus:ring-2 focus:ring-emerald-500 outline-none transition"></textarea>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Bukti Dukung Google Drive Upload -->
-                                <div class="p-4 bg-emerald-50/50 border-2 border-dashed border-emerald-300 rounded-2xl space-y-3">
-                                    <div class="flex items-center justify-between">
-                                        <label class="block text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
-                                            <i class="fa-solid fa-cloud-arrow-up text-emerald-600"></i> Unggah Bukti Dukung ke Google Drive
-                                        </label>
-                                        <span class="text-[10px] text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded font-bold">Otomatis Terhubung Drive</span>
-                                    </div>
-                                    
-                                    <div class="flex flex-wrap items-center gap-3">
-                                        <!-- Upload Gambar -->
-                                        <label class="cursor-pointer bg-white hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 border border-slate-300 hover:border-emerald-400 px-4 py-2.5 rounded-xl text-xs font-semibold shadow-sm transition flex items-center gap-2">
-                                            <i class="fa-solid fa-image text-emerald-600"></i> Unggah Gambar (JPG, PNG)
-                                            <input type="file" @change="handleFileUpload" class="hidden" accept="image/*">
-                                        </label>
-
-                                        <!-- Upload Dokumen -->
-                                        <label class="cursor-pointer bg-white hover:bg-blue-50 text-slate-700 hover:text-blue-700 border border-slate-300 hover:border-blue-400 px-4 py-2.5 rounded-xl text-xs font-semibold shadow-sm transition flex items-center gap-2">
-                                            <i class="fa-solid fa-file-pdf text-blue-600"></i> Unggah Dokumen (PDF, DOC)
-                                            <input type="file" @change="handleFileUpload" class="hidden" accept=".pdf,.doc,.docx">
-                                        </label>
-                                        
-                                        <div v-if="formData.fileName" class="flex items-center gap-2 bg-emerald-100 border border-emerald-300 text-emerald-900 px-3 py-1.5 rounded-xl text-xs font-medium">
-                                            <i class="fa-solid" :class="formData.filePreview ? 'fa-image text-emerald-600' : 'fa-file-lines text-blue-600'"></i>
-                                            <span class="max-w-[200px] truncate">{{ formData.fileName }}</span>
-                                            <button type="button" @click="removeFile" class="text-red-600 hover:text-red-800 ml-1 font-bold">&times;</button>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Action Buttons -->
-                                <div class="flex justify-end gap-3 pt-2">
-                                    <button type="button" @click="resetForm" class="px-4 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl text-xs font-semibold transition">
-                                        Reset Form
-                                    </button>
-                                    <button type="submit" class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold shadow-md transition flex items-center gap-2">
-                                        <i class="fa-solid fa-cloud-arrow-up"></i> Simpan ke Google Sheets & Drive
-                                    </button>
-                                </div>
-
-                            </form>
-                        </div>
-
-                        <!-- TAB 2 (GURU): RIWAYAT JURNAL MANDIRI -->
-                        <div v-if="currentTab === 'history' && currentUser.role === 'guru'" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6 space-y-4">
-                            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-100 pb-4">
-                                <div>
-                                    <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
-                                        <i class="fa-solid fa-clock-rotate-left text-emerald-600"></i> Riwayat Jurnal Harian Saya
-                                    </h2>
-                                    <p class="text-xs text-slate-500">Daftar rekaman jurnal harian Anda yang tersimpan di Google Sheets.</p>
-                                </div>
-                                <button @click="fetchDataFromGas" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold border transition flex items-center gap-1.5">
-                                    <i class="fa-solid fa-rotate text-emerald-600"></i> Refresh Data
-                                </button>
-                            </div>
-
-                            <!-- Table History Guru -->
-                            <div class="overflow-x-auto rounded-xl border border-slate-200">
-                                <table class="w-full text-left text-xs text-slate-600">
-                                    <thead class="bg-slate-100 text-slate-700 uppercase font-bold text-[10px] border-b border-slate-200">
-                                        <tr>
-                                            <th class="p-3 w-12 text-center">No</th>
-                                            <th class="p-3">Tanggal & Waktu</th>
-                                            <th class="p-3">Indikator & Kegiatan</th>
-                                            <th class="p-3">Uraian Kegiatan</th>
-                                            <th class="p-3 text-center">Bukti Drive</th>
-                                            <th class="p-3 text-center">Status Supervisi</th>
-                                            <th class="p-3 text-center w-24">Aksi</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="divide-y divide-slate-100">
-                                        <tr v-if="userJournals.length === 0">
-                                            <td colspan="7" class="p-8 text-center text-slate-400">
-                                                Belum ada entri jurnal harian yang tersimpan.
-                                            </td>
-                                        </tr>
-                                        <tr v-for="(j, index) in userJournals" :key="j.id" class="hover:bg-slate-50 transition">
-                                            <td class="p-3 text-center font-bold text-slate-400">{{ index + 1 }}</td>
-                                            <td class="p-3 whitespace-nowrap">
-                                                <div class="font-bold text-slate-800">{{ formatDate(j.tanggal) }}</div>
-                                                <div class="text-[10px] text-slate-400">{{ j.jam }}</div>
-                                            </td>
-                                            <td class="p-3">
-                                                <span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-semibold text-[10px] inline-block mb-1">
-                                                    {{ j.indikator }}
-                                                </span>
-                                                <div class="font-semibold text-slate-700">{{ j.submenu }}</div>
-                                                <div v-if="j.kelas" class="text-[10px] text-amber-700 font-medium">Kelas: {{ j.kelas }}</div>
-                                            </td>
-                                            <td class="p-3 max-w-xs">
-                                                <p class="line-clamp-2 text-slate-700">{{ j.uraian }}</p>
-                                            </td>
-                                            <td class="p-3 text-center whitespace-nowrap">
-                                                <a v-if="j.driveUrl" :href="j.driveUrl" target="_blank" class="inline-flex items-center gap-1 text-[10px] bg-emerald-50 text-emerald-700 hover:bg-emerald-100 px-2 py-1 rounded border border-emerald-200 font-medium">
-                                                    <i class="fa-solid fa-paperclip"></i> File Drive
-                                                </a>
-                                                <span v-else class="text-slate-400 text-[10px]">-</span>
-                                            </td>
-                                            <td class="p-3 text-center whitespace-nowrap">
-                                                <span class="px-2 py-0.5 rounded-full text-[9px] font-bold inline-flex items-center gap-1" :class="getStatusBadgeClass(j.statusSupervisi)">
-                                                    {{ j.statusSupervisi || 'Belum Diperiksa' }}
-                                                </span>
-                                            </td>
-                                            <td class="p-3 text-center whitespace-nowrap">
-                                                <button @click="openDetailModal(j)" title="Lihat Detail" class="p-1.5 bg-slate-100 hover:bg-emerald-100 text-slate-600 hover:text-emerald-700 rounded-lg transition">
-                                                    <i class="fa-solid fa-eye"></i>
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-
-                        <!-- TAB SETTINGS & GAS SETUP -->
-                        <div v-if="currentTab === 'settings'" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-6">
-                            <div class="border-b border-slate-100 pb-4">
-                                <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
-                                    <i class="fa-solid fa-database text-emerald-600"></i> Pengaturan Web App Google Apps Script (GAS)
-                                </h2>
-                                <p class="text-xs text-slate-500">Hubungkan halaman jurnal ini ke backend Google Sheets dan folder Google Drive sekolah Anda.</p>
-                            </div>
-
-                            <div class="space-y-4 max-w-2xl">
-                                <div>
-                                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1.5">Google Apps Script Web App URL</label>
-                                    <input v-model="gasAppUrlInput" type="url" placeholder="https://script.google.com/macros/s/.../exec" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
-                                    <p class="text-[11px] text-slate-400 mt-1">Pastikan Web App diset ke "Execute as: Me" dan "Who has access: Anyone".</p>
-                                </div>
-
-                                <div class="flex gap-3">
-                                    <button @click="saveGasUrl" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-2">
-                                        <i class="fa-solid fa-floppy-disk"></i> Simpan URL Database
-                                    </button>
-                                    <button @click="testGasConnection" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition flex items-center gap-2">
-                                        <i class="fa-solid fa-plug"></i> Tes Koneksi GAS
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- TAB REKAP & CETAK FOR GURU -->
-                        <div v-if="currentTab === 'recap' && currentUser.role === 'guru'" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-4">
-                            <div class="flex justify-between items-center border-b border-slate-100 pb-4">
-                                <div>
-                                    <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
-                                        <i class="fa-solid fa-file-invoice text-emerald-600"></i> Cetak Rekapitulasi Jurnal Harian
-                                    </h2>
-                                    <p class="text-xs text-slate-500">Format cetak A4 landscape siap cetak / simpan sebagai PDF.</p>
-                                </div>
-                                <button @click="triggerPrint" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-2">
-                                    <i class="fa-solid fa-print"></i> Cetak Laporan A4
-                                </button>
-                            </div>
-
-                            <!-- Print View Preview Container -->
-                            <div class="p-6 bg-slate-50 border border-slate-200 rounded-2xl print-container">
-                                <div class="text-center space-y-1 mb-6">
-                                    <h3 class="font-extrabold text-base uppercase text-slate-900">REKAPITULASI JURNAL HARIAN GURU</h3>
-                                    <p class="text-xs font-bold text-slate-700">SMA NEGERI 05 BOMBANA &bull; TAHUN AJARAN 2026/2027</p>
-                                    <p class="text-[11px] text-slate-500">Nama Guru: {{ currentUser.nama }} | NIP: {{ currentUser.nip }}</p>
-                                </div>
-
-                                <table class="w-full text-left text-[11px] border-collapse border border-slate-400">
-                                    <thead>
-                                        <tr class="bg-slate-200 text-slate-800 font-bold uppercase">
-                                            <th class="border border-slate-400 p-2 text-center w-8">No</th>
-                                            <th class="border border-slate-400 p-2 w-24">Tanggal</th>
-                                            <th class="border border-slate-400 p-2 w-32">Kegiatan</th>
-                                            <th class="border border-slate-400 p-2">Uraian Aktivitas</th>
-                                            <th class="border border-slate-400 p-2">Catatan/Refleksi</th>
-                                            <th class="border border-slate-400 p-2 text-center w-24">Status</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr v-for="(j, idx) in userJournals" :key="j.id">
-                                            <td class="border border-slate-400 p-2 text-center">{{ idx + 1 }}</td>
-                                            <td class="border border-slate-400 p-2">{{ j.tanggal }}</td>
-                                            <td class="border border-slate-400 p-2 font-semibold">{{ j.submenu }}</td>
-                                            <td class="border border-slate-400 p-2">{{ j.uraian }}</td>
-                                            <td class="border border-slate-400 p-2">{{ j.hasil || j.refleksi }}</td>
-                                            <td class="border border-slate-400 p-2 text-center font-bold">{{ j.statusSupervisi || 'Diajukan' }}</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-
-                                <!-- Tanda Tangan Section for Print -->
-                                <div class="mt-12 grid grid-cols-2 text-center text-xs font-semibold">
-                                    <div>
-                                        <p>Mengetahui,</p>
-                                        <p class="font-bold">Kepala SMAN 05 Bombana</p>
-                                        <div class="h-16"></div>
-                                        <p class="underline font-bold">H. Ramli, S.Pd., M.Si.</p>
-                                        <p class="text-[10px] text-slate-500">NIP. 19720412 199802 1 001</p>
-                                    </div>
-                                    <div>
-                                        <p>Bombana, {{ todayFormatted }}</p>
-                                        <p class="font-bold">Guru Mata Pelajaran</p>
-                                        <div class="h-16"></div>
-                                        <p class="underline font-bold">{{ currentUser.nama }}</p>
-                                        <p class="text-[10px] text-slate-500">NIP. {{ currentUser.nip }}</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- TAB PENGATURAN KELAS (GURU) -->
-                        <div v-if="currentTab === 'kelas' && currentUser.role === 'guru'" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-4">
-                            <div class="flex justify-between items-center border-b border-slate-100 pb-4">
-                                <div>
-                                    <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
-                                        <i class="fa-solid fa-chalkboard text-emerald-600"></i> Pengaturan Daftar Kelas Binaan
-                                    </h2>
-                                    <p class="text-xs text-slate-500">Kelola daftar kelas yang Anda ampu untuk mempercepat input jurnal harian.</p>
-                                </div>
-                            </div>
-
-                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                                <div v-for="k in kelasList" :key="k.id || k.nama" class="p-4 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between">
-                                    <div class="flex items-center gap-3">
-                                        <div class="w-9 h-9 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-sm">
-                                            <i class="fa-solid fa-school"></i>
-                                        </div>
-                                        <div>
-                                            <p class="font-bold text-slate-800 text-xs">{{ k.nama }}</p>
-                                            <p class="text-[10px] text-slate-500">Tingkat {{ k.tingkat }}</p>
-                                        </div>
-                                    </div>
-                                    <span class="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded">Aktif</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- TAB LAPORAN KCD (EXECUTIVE) -->
-                        <div v-if="currentTab === 'monitor-recap' && currentUser.role !== 'guru'" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-4">
-                            <div class="flex justify-between items-center border-b border-slate-100 pb-4">
-                                <div>
-                                    <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
-                                        <i class="fa-solid fa-file-pdf text-amber-600"></i> Laporan Rekapitulasi Pemantauan KCD
-                                    </h2>
-                                    <p class="text-xs text-slate-500">Laporan hasil pemantauan dan supervisi berkas jurnal guru untuk Cabang Dinas (KCD).</p>
-                                </div>
-                                <button @click="triggerPrint" class="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-2">
-                                    <i class="fa-solid fa-print"></i> Cetak Laporan KCD A4
-                                </button>
-                            </div>
-
-                            <div class="p-6 bg-slate-50 border border-slate-200 rounded-2xl print-container">
-                                <div class="text-center space-y-1 mb-6">
-                                    <h3 class="font-black text-base uppercase text-slate-900">LAPORAN PEMANTAUAN & SUPERVISI JURNAL GURU</h3>
-                                    <p class="text-xs font-bold text-slate-700">KANTOR CABANG DINAS (KCD) WILAYAH BOMBANAS</p>
-                                    <p class="text-[11px] text-slate-500">Satuan Pendidikan: SMAN 05 Bombana &bull; Tanggal Cetak: {{ todayFormatted }}</p>
-                                </div>
-
-                                <table class="w-full text-left text-[11px] border-collapse border border-slate-400">
-                                    <thead>
-                                        <tr class="bg-slate-200 text-slate-800 font-bold uppercase">
-                                            <th class="border border-slate-400 p-2 text-center w-8">No</th>
-                                            <th class="border border-slate-400 p-2">Nama Guru & NIP</th>
-                                            <th class="border border-slate-400 p-2 text-center">Jumlah Jurnal</th>
-                                            <th class="border border-slate-400 p-2 text-center">Tatap Muka</th>
-                                            <th class="border border-slate-400 p-2 text-center">Status Verifikasi</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr v-for="(t, idx) in teacherList" :key="t.nip">
-                                            <td class="border border-slate-400 p-2 text-center">{{ idx + 1 }}</td>
-                                            <td class="border border-slate-400 p-2">
-                                                <div class="font-bold">{{ t.nama }}</div>
-                                                <div class="text-[9px] text-slate-500">NIP. {{ t.nip }}</div>
-                                            </td>
-                                            <td class="border border-slate-400 p-2 text-center font-bold">{{ getTeacherJournalCount(t.nip) }}</td>
-                                            <td class="border border-slate-400 p-2 text-center font-bold">{{ getTeacherClassCount(t.nip) }} Sesi</td>
-                                            <td class="border border-slate-400 p-2 text-center font-semibold">Telah Terverifikasi</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-
-                                <div class="mt-12 grid grid-cols-2 text-center text-xs font-semibold">
-                                    <div>
-                                        <p>Mengetahui,</p>
-                                        <p class="font-bold">Pengawas Pembina SMAN 05 Bombana</p>
-                                        <div class="h-16"></div>
-                                        <p class="underline font-bold">Dr. Hj. Endang Sulis, M.Pd.</p>
-                                        <p class="text-[10px] text-slate-500">NIP. 19680325 199403 2 003</p>
-                                    </div>
-                                    <div>
-                                        <p>Bombana, {{ todayFormatted }}</p>
-                                        <p class="font-bold">Kepala Cabang Dinas (KCD)</p>
-                                        <div class="h-16"></div>
-                                        <p class="underline font-bold">Ir. M. Yusuf, M.M.</p>
-                                        <p class="text-[10px] text-slate-500">NIP. 19651108 199201 1 004</p>
-                                    </div>
-                                </div>
                             </div>
                         </div>
 
                     </div>
                 </div>
-            </div>
 
-            <!-- MODAL DETAIL JURNAL -->
-            <div v-if="selectedDetailJournal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-                <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-4">
-                    <div class="flex justify-between items-center border-b border-slate-100 pb-3">
-                        <h3 class="font-extrabold text-slate-800 text-sm flex items-center gap-2">
-                            <i class="fa-solid fa-file-lines text-emerald-600"></i> Detail Rincian Jurnal
-                        </h3>
-                        <button @click="selectedDetailJournal = null" class="text-slate-400 hover:text-slate-600 text-lg font-bold">&times;</button>
-                    </div>
-
-                    <div class="space-y-3 text-xs text-slate-700">
-                        <div>
-                            <span class="text-[10px] font-bold uppercase text-slate-400 block">Indikator / Submenu:</span>
-                            <span class="font-bold text-slate-800">{{ selectedDetailJournal.indikator }} &bull; {{ selectedDetailJournal.submenu }}</span>
-                        </div>
-                        <div class="grid grid-cols-2 gap-2">
-                            <div>
-                                <span class="text-[10px] font-bold uppercase text-slate-400 block">Tanggal & Waktu:</span>
-                                <span>{{ selectedDetailJournal.tanggal }} ({{ selectedDetailJournal.jam }})</span>
-                            </div>
-                            <div>
-                                <span class="text-[10px] font-bold uppercase text-slate-400 block">Lokasi:</span>
-                                <span>{{ selectedDetailJournal.lokasi }}</span>
-                            </div>
-                        </div>
-                        <div>
-                            <span class="text-[10px] font-bold uppercase text-slate-400 block">Uraian Aktivitas:</span>
-                            <p class="p-2.5 bg-slate-50 rounded-xl border border-slate-200 mt-1">{{ selectedDetailJournal.uraian }}</p>
-                        </div>
-                        <div v-if="selectedDetailJournal.catatanSupervisi">
-                            <span class="text-[10px] font-bold uppercase text-amber-600 block">Catatan Pemantau / Supervisi:</span>
-                            <p class="p-2.5 bg-amber-50 rounded-xl border border-amber-200 text-amber-900 mt-1 font-medium">{{ selectedDetailJournal.catatanSupervisi }}</p>
-                        </div>
-                    </div>
-
-                    <div class="pt-2 flex justify-end">
-                        <button @click="selectedDetailJournal = null" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl text-xs font-bold transition">Tutup</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- MODAL SUPERVISI PEMANTAU (KEPSEK / PENGAWAS / KCD) -->
-            <div v-if="supervisionModalJournal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-                <div class="bg-white rounded-3xl max-w-xl w-full p-6 shadow-2xl border border-slate-200 space-y-4">
-                    <div class="flex justify-between items-center border-b border-slate-100 pb-3">
-                        <h3 class="font-extrabold text-slate-800 text-sm flex items-center gap-2">
-                            <i class="fa-solid fa-signature text-amber-600"></i> Form Supervisi & Catatan Pembinaan
-                        </h3>
-                        <button @click="supervisionModalJournal = null" class="text-slate-400 hover:text-slate-600 text-lg font-bold">&times;</button>
-                    </div>
-
-                    <div class="space-y-4 text-xs">
-                        <div class="p-3 bg-slate-50 rounded-2xl border border-slate-200 space-y-1">
-                            <p class="font-bold text-slate-800">{{ supervisionModalJournal.namaGuru || 'Drs. Ahmad Subagja, M.Pd.' }}</p>
-                            <p class="text-slate-500">Kegiatan: {{ supervisionModalJournal.submenu }} ({{ supervisionModalJournal.tanggal }})</p>
-                            <p class="text-slate-600 italic">"{{ supervisionModalJournal.uraian }}"</p>
-                        </div>
-
-                        <div>
-                            <label class="block font-bold text-slate-700 uppercase mb-1">Keputusan Status Supervisi</label>
-                            <select v-model="supervisionForm.status" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-800 outline-none focus:ring-2 focus:ring-amber-500">
-                                <option value="Disetujui Kepsek">Disetujui Kepsek (Memenuhi Syarat)</option>
-                                <option value="Diverifikasi Pengawas">Diverifikasi Pengawas Pembina</option>
-                                <option value="Ditinjau KCD">Ditinjau KCD (Laporan Valid)</option>
-                                <option value="Perlu Perbaikan">Perlu Perbaikan / Revisi Catatan</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label class="block font-bold text-slate-700 uppercase mb-1">Catatan Pembinaan / Feedback</label>
-                            <textarea v-model="supervisionForm.catatan" rows="3" placeholder="Masukkan arahan atau apresiasi untuk guru..." class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-xs outline-none focus:ring-2 focus:ring-amber-500"></textarea>
-                        </div>
-                    </div>
-
-                    <div class="pt-2 flex justify-end gap-2">
-                        <button @click="supervisionModalJournal = null" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl text-xs font-bold transition">Batal</button>
-                        <button @click="saveSupervision" class="px-5 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold transition shadow-md">Simpan Result Supervisi</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- MODAL GAS CONFIGURATION OVERLAY -->
-            <div v-if="showGasModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-                <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
-                    <div class="flex justify-between items-center border-b border-slate-100 pb-3">
-                        <h3 class="font-extrabold text-slate-800 text-sm flex items-center gap-2">
-                            <i class="fa-solid fa-gear text-emerald-600"></i> Setup Google Apps Script URL
-                        </h3>
-                        <button @click="showGasModal = false" class="text-slate-400 hover:text-slate-600 text-lg font-bold">&times;</button>
-                    </div>
-
-                    <div class="space-y-3 text-xs">
-                        <label class="block font-bold text-slate-700">Web App Executable URL:</label>
-                        <input v-model="gasAppUrlInput" type="url" placeholder="https://script.google.com/macros/s/.../exec" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-xs outline-none focus:ring-2 focus:ring-emerald-500">
-                    </div>
-
-                    <div class="pt-2 flex justify-end gap-2">
-                        <button @click="showGasModal = false" class="px-4 py-2 bg-slate-200 text-slate-700 rounded-xl text-xs font-bold">Batal</button>
-                        <button @click="saveGasUrl" class="px-5 py-2 bg-emerald-600 text-white rounded-xl text-xs font-bold shadow-md">Simpan URL</button>
-                    </div>
-                </div>
             </div>
 
         </main>
+
+        <!-- MODAL ADD/EDIT USER ACCOUNT (ADMIN) -->
+        <div v-if="showUserModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+            <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
+                <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                    <h3 class="font-bold text-slate-800 text-base">
+                        {{ editingUser ? 'Edit Akun Pengguna' : 'Tambah Akun Pengguna Baru' }}
+                    </h3>
+                    <button @click="showUserModal = false" class="text-slate-400 hover:text-slate-600 text-lg">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <form @submit.prevent="saveUserAccount" class="space-y-3 text-xs">
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Peran / Jabatan (Role)</label>
+                        <select v-model="userForm.role" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 outline-none font-semibold text-slate-800">
+                            <option value="guru">Guru Mata Pelajaran</option>
+                            <option value="kepsek">Kepala Sekolah</option>
+                            <option value="pengawas">Pengawas Pembina</option>
+                            <option value="kcd">Kepala Cabang Dinas (KCD)</option>
+                            <option value="admin">Administrator System</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Nama Lengkap & Gelar</label>
+                        <input v-model="userForm.nama" type="text" placeholder="Contoh: Drs. Ahmad Subagja, M.Pd." class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 outline-none" required>
+                    </div>
+
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Username / NIP</label>
+                        <input v-model="userForm.username" type="text" placeholder="Contoh: 19850817 201001 1 002" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 outline-none font-mono" required>
+                    </div>
+
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Password</label>
+                        <input v-model="userForm.password" type="text" placeholder="Masukkan password" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 outline-none font-mono" required>
+                    </div>
+
+                    <div v-if="userForm.role === 'guru'">
+                        <label class="block font-bold text-slate-700 mb-1">Mata Pelajaran Utama</label>
+                        <input v-model="userForm.mapelUtama" type="text" placeholder="Contoh: Matematika" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 outline-none">
+                    </div>
+
+                    <div class="pt-3 flex gap-2 justify-end">
+                        <button type="button" @click="showUserModal = false" class="px-4 py-2 bg-slate-100 text-slate-600 rounded-xl font-semibold hover:bg-slate-200">
+                            Batal
+                        </button>
+                        <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 shadow-md">
+                            Simpan Akun
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
     </div>
 
     <script>
-        const { createApp, ref, computed, onMounted } = Vue;
+        const { createApp } = Vue;
 
         createApp({
-            setup() {
-                // User & Auth State
-                const isLoggedIn = ref(false);
-                const loginType = ref('guru'); // 'guru' or 'monitor'
-                const loginError = ref('');
-                const loginForm = ref({
-                    role: 'kepsek',
-                    username: '',
-                    password: ''
-                });
-
-                const currentUser = ref({
-                    nama: '',
-                    nip: '',
-                    jabatan: '',
-                    mapelUtama: '',
-                    avatarUrl: '',
-                    role: 'guru' // 'guru', 'kepsek', 'pengawas', 'kcd'
-                });
-
-                // Layout State
-                const currentTab = ref('dashboard');
-                const isSidebarHidden = ref(false);
-                const isLoading = ref(false);
-                const toastMessage = ref('');
-
-                // GAS Connection State
-                const gasAppUrl = ref('');
-                const gasAppUrlInput = ref('');
-                const showGasModal = ref(false);
-
-                // Filters
-                const searchQuery = ref('');
-                const filterIndikator = ref('');
-                const filterKelas = ref('');
-                const filterGuru = ref('');
-                const filterStatus = ref('');
-
-                // Selected Modals
-                const selectedDetailJournal = ref(null);
-                const supervisionModalJournal = ref(null);
-                const supervisionForm = ref({
-                    status: 'Disetujui Kepsek',
-                    catatan: ''
-                });
-
-                // Mock Teachers Master Data
-                const teacherList = ref([
-                    { nama: 'Drs. Ahmad Subagja, M.Pd.', nip: '19850817 201001 1 002', jabatan: 'Guru Ahli Madya', mapelUtama: 'Matematika' },
-                    { nama: 'Siti Nurhaliza, S.Pd.', nip: '19900214 201503 2 005', jabatan: 'Guru Ahli Muda', mapelUtama: 'Bahasa Indonesia' },
-                    { nama: 'Budi Santoso, M.Si.', nip: '19821105 200801 1 003', jabatan: 'Guru Ahli Madya', mapelUtama: 'Fisika' },
-                    { nama: 'Dewi Anggraini, S.Kom.', nip: '19930722 201902 2 008', jabatan: 'Guru Ahli Pertama', mapelUtama: 'Informatika' }
-                ]);
-
-                // Class Master Data
-                const kelasList = ref([
-                    { id: 1, nama: 'X IPA 1', tingkat: 'X' },
-                    { id: 2, nama: 'X IPA 2', tingkat: 'X' },
-                    { id: 3, nama: 'XI IPA 1', tingkat: 'XI' },
-                    { id: 4, nama: 'XII IPA 1', tingkat: 'XII' },
-                    { id: 5, nama: 'XII IPS 1', tingkat: 'XII' }
-                ]);
-
-                // Category Mapping for Journals
-                const categoryMap = {
-                    'I. Perencanaan Pembelajaran': [
-                        'Penyusunan Modul Ajar / RPP',
-                        'Penyusunan Asesmen & Instrumen Evaluasi',
-                        'Analisis Capaian Pembelajaran (CP)'
-                    ],
-                    'II. Pelaksanaan Pembelajaran': [
-                        'Pelaksanaan Tatap Muka Kelas',
-                        'Pembimbingan Praktikum / Laboratorium',
-                        'Pengayaan & Remedial Siswa'
-                    ],
-                    'III. Evaluasi & Asesmen': [
-                        'Pemeriksaan Tugas & Hasil Ujian',
-                        'Input Nilai Raport / Rapor Digital',
-                        'Evaluasi Hasil Belajar Siswa'
-                    ],
-                    'IV. Tugas Tambahan & Pokok': [
-                        'Rapat Dewan Guru / Pembina Sekolah',
-                        'Tugas Wali Kelas / Piket Sekolah',
-                        'Kegiatan Ekstrakurikuler & Pendampingan'
-                    ]
-                };
-
-                // Form Data Model
-                const formData = ref({
-                    indikator: '',
-                    submenu: '',
-                    kelas: '',
-                    mapel: '',
-                    tanggal: new Date().toISOString().slice(0, 10),
-                    jam: '07:30 - 09:00 WITA',
-                    lokasi: 'Ruang Kelas XII IPA 1',
-                    uraian: '',
-                    hasil: '',
-                    refleksi: '',
-                    pembinaan: '',
-                    fileName: '',
-                    filePreview: '',
-                    driveUrl: ''
-                });
-
-                // Main Master Dataset Journals
-                const allJournals = ref([
-                    {
-                        id: 'j1',
-                        nipGuru: '19850817 201001 1 002',
-                        namaGuru: 'Drs. Ahmad Subagja, M.Pd.',
-                        indikator: 'II. Pelaksanaan Pembelajaran',
-                        submenu: 'Pelaksanaan Tatap Muka Kelas',
-                        kelas: 'XII IPA 1',
-                        mapel: 'Matematika Wajib',
-                        tanggal: '2026-08-20',
-                        jam: '07:30 - 09:00 WITA',
-                        lokasi: 'Ruang Kelas XII IPA 1',
-                        uraian: 'Melaksanakan pembelajaran materi Turunan Fungsi Trigonometri dengan metode Problem Based Learning (PBL).',
-                        hasil: 'Siswa dapat menyelesaikan 80% soal latihan dengan benar.',
-                        refleksi: 'Perlu alokasi waktu lebih pada sesi tanya jawab.',
-                        pembinaan: 'Menambah variasi soal untuk kelompok tingkat lanjut.',
-                        driveUrl: '#',
-                        statusSupervisi: 'Disetujui Kepsek',
-                        catatanSupervisi: 'Sangat baik, modul ajar & sintaks PBL terlaksana komplit.'
+            data() {
+                return {
+                    isLoggedIn: false,
+                    loginType: 'guru', // 'guru', 'monitor', 'admin'
+                    loginForm: {
+                        username: '',
+                        password: '',
+                        role: 'kepsek'
                     },
-                    {
-                        id: 'j2',
-                        nipGuru: '19900214 201503 2 005',
-                        namaGuru: 'Siti Nurhaliza, S.Pd.',
-                        indikator: 'I. Perencanaan Pembelajaran',
-                        submenu: 'Penyusunan Modul Ajar / RPP',
-                        kelas: 'X IPA 2',
-                        mapel: 'Bahasa Indonesia',
-                        tanggal: '2026-08-19',
-                        jam: '10:00 - 11:30 WITA',
-                        lokasi: 'Ruang Guru SMAN 05',
-                        uraian: 'Menyusun Modul Ajar Bab Teks Laporan Hasil Observasi (LHO) berbasis kearifan lokal Bombana.',
-                        hasil: 'Draft modul selesai disesuaikan dengan Alur Tujuan Pembelajaran (ATP).',
-                        refleksi: 'Integrasi media audiovisual perlu diperkaya.',
-                        pembinaan: 'Siap diterapkan pada pertemuan pekan depan.',
-                        driveUrl: '#',
-                        statusSupervisi: 'Diverifikasi Pengawas',
-                        catatanSupervisi: 'Modul terstruktur rapi. Pertahankan inovasi konten kearifan lokal.'
-                    }
-                ]);
+                    loginError: '',
+                    currentUser: {
+                        nama: '',
+                        nip: '',
+                        role: '',
+                        jabatan: '',
+                        mapelUtama: ''
+                    },
+                    currentTab: 'dashboard',
+                    isSidebarHidden: false,
+                    isLoading: false,
+                    toastMessage: '',
+                    gasAppUrl: '',
+                    showUserModal: false,
+                    editingUser: false,
 
-                // Filter Computed Properties
-                const userJournals = computed(() => {
-                    return allJournals.value.filter(j => (j.nipGuru || j.nip) === currentUser.value.nip);
-                });
+                    userSearchQuery: '',
+                    userFilterRole: '',
 
-                const recentUserJournals = computed(() => {
-                    return userJournals.value.slice(0, 5);
-                });
+                    userForm: {
+                        nama: '',
+                        username: '',
+                        password: '',
+                        role: 'guru',
+                        mapelUtama: '',
+                        jabatan: ''
+                    },
 
-                const filteredAllJournals = computed(() => {
-                    return allJournals.value.filter(j => {
-                        const matchSearch = !searchQuery.value || 
-                            (j.namaGuru && j.namaGuru.toLowerCase().includes(searchQuery.value.toLowerCase())) ||
-                            j.uraian.toLowerCase().includes(searchQuery.value.toLowerCase());
-                        const matchIndikator = !filterIndikator.value || j.indikator === filterIndikator.value;
-                        const matchGuru = !filterGuru.value || (j.nipGuru || j.nip) === filterGuru.value;
-                        const matchStatus = !filterStatus.value || j.statusSupervisi === filterStatus.value;
-                        return matchSearch && matchIndikator && matchGuru && matchStatus;
+                    // Daftar Akun Pengguna Terdaftar
+                    userAccountList: [
+                        { username: 'admin', password: 'admin123', nama: 'Administrator System', role: 'admin', jabatan: 'Pengelola Sistem' },
+                        { username: '19850817 201001 1 002', password: '17081985', nama: 'Drs. Ahmad Subagja, M.Pd.', role: 'guru', mapelUtama: 'Matematika', jabatan: 'Guru Madya', nip: '19850817 201001 1 002' },
+                        { username: '19720412 199802 1 001', password: '12041972', nama: 'H. Ramli, S.Pd., M.Si.', role: 'kepsek', jabatan: 'Kepala School SMAN 05 Bombana', nip: '19720412 199802 1 001' },
+                        { username: '19680325 199403 2 003', password: '25031968', nama: 'Dr. Hj. Endang Sulis, M.Pd.', role: 'pengawas', jabatan: 'Pengawas Pembina Sekolah', nip: '19680325 199403 2 003' },
+                        { username: '19651108 199201 1 004', password: '08111965', nama: 'Ir. M. Yusuf, M.M.', role: 'kcd', jabatan: 'Kepala Cabang Dinas (KCD)', nip: '19651108 199201 1 004' }
+                    ],
+
+                    // Sample Data Jurnal
+                    userJournals: [
+                        { id: 1, tanggal: '2026-08-20', kelas: 'X IPA 1', jamKe: '1 - 2', mapel: 'Matematika', materi: 'Persamaan Kuadrat & Fungsi Grafik', hadir: 32, sakit: 1, izin: 0, alfa: 0 }
+                    ],
+                    allJournals: [
+                        { id: 1, guru: 'Drs. Ahmad Subagja, M.Pd.', tanggal: '2026-08-20', kelas: 'X IPA 1', jamKe: '1 - 2', mapel: 'Matematika', materi: 'Persamaan Kuadrat & Fungsi Grafik' }
+                    ],
+                    kelasList: ['X IPA 1', 'X IPA 2', 'XI IPS 1', 'XII IPA 1']
+                };
+            },
+            computed: {
+                totalTatapMuka() {
+                    return this.userJournals.length;
+                },
+                totalBuktiDukung() {
+                    return this.userJournals.length;
+                },
+                filteredUserAccounts() {
+                    return this.userAccountList.filter(u => {
+                        const matchQuery = !this.userSearchQuery || 
+                            u.nama.toLowerCase().includes(this.userSearchQuery.toLowerCase()) ||
+                            u.username.toLowerCase().includes(this.userSearchQuery.toLowerCase());
+                        const matchRole = !this.userFilterRole || u.role === this.userFilterRole;
+                        return matchQuery && matchRole;
                     });
-                });
+                }
+            },
+            methods: {
+                showToast(msg) {
+                    this.toastMessage = msg;
+                    setTimeout(() => {
+                        this.toastMessage = '';
+                    }, 3000);
+                },
+                handleLogin() {
+                    this.loginError = '';
+                    const username = this.loginForm.username.trim();
+                    const password = this.loginForm.password.trim();
 
-                const currentSubmenus = computed(() => {
-                    return formData.value.indikator ? categoryMap[formData.value.indikator] || [] : [];
-                });
+                    const user = this.userAccountList.find(u => u.username === username && u.password === password);
 
-                const totalTatapMuka = computed(() => {
-                    return userJournals.value.filter(j => j.submenu === 'Pelaksanaan Tatap Muka Kelas').length;
-                });
+                    if (user) {
+                        this.currentUser = {
+                            nama: user.nama,
+                            nip: user.nip || user.username,
+                            role: user.role,
+                            jabatan: user.jabatan || 'Tenaga Pendidik',
+                            mapelUtama: user.mapelUtama || '-'
+                        };
+                        this.isLoggedIn = true;
+                        
+                        // Switch default view depending on role
+                        if (user.role === 'admin') {
+                            this.currentTab = 'admin-dash';
+                        } else if (user.role === 'guru') {
+                            this.currentTab = 'dashboard';
+                        } else {
+                            this.currentTab = 'monitor-dash';
+                        }
 
-                const totalBuktiDukung = computed(() => {
-                    return userJournals.value.filter(j => j.driveUrl).length;
-                });
-
-                const verifiedJournalsCount = computed(() => {
-                    return allJournals.value.filter(j => j.statusSupervisi && j.statusSupervisi !== 'Belum Diperiksa').length;
-                });
-
-                const pendingJournalsCount = computed(() => {
-                    return allJournals.value.filter(j => !j.statusSupervisi || j.statusSupervisi === 'Belum Diperiksa').length;
-                });
-
-                const todayFormatted = computed(() => {
-                    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-                    return new Date().toLocaleDateString('id-ID', options);
-                });
-
-                // Methods
-                const showToast = (msg) => {
-                    toastMessage.value = msg;
-                    setTimeout(() => { toastMessage.value = ''; }, 3500);
-                };
-
-                const toggleSidebar = () => {
-                    isSidebarHidden.value = !isSidebarHidden.value;
-                };
-
-                const selectTab = (tab) => {
-                    currentTab.value = tab;
-                };
-
-                const getRoleLabel = (role) => {
+                        this.showToast(`Selamat datang, ${user.nama}`);
+                    } else {
+                        this.loginError = 'Username atau Password yang Anda masukkan tidak valid!';
+                    }
+                },
+                logout() {
+                    this.isLoggedIn = false;
+                    this.loginForm.username = '';
+                    this.loginForm.password = '';
+                    this.loginError = '';
+                    this.showToast('Anda telah keluar dari sistem.');
+                },
+                selectTab(tab) {
+                    this.currentTab = tab;
+                },
+                toggleSidebar() {
+                    this.isSidebarHidden = !this.isSidebarHidden;
+                },
+                getRoleLabel(role) {
                     switch (role) {
-                        case 'guru': return 'Guru Mata Pelajaran';
+                        case 'admin': return 'Administrator';
+                        case 'guru': return 'Guru Pengajar';
                         case 'kepsek': return 'Kepala Sekolah';
                         case 'pengawas': return 'Pengawas Pembina';
-                        case 'kcd': return 'Kepala Cabang Dinas (KCD)';
-                        default: return 'Pengguna';
+                        case 'kcd': return 'Kepala Cabang Dinas';
+                        default: return 'User';
                     }
-                };
-
-                const getRoleIcon = (role) => {
+                },
+                getRoleBadgeClass(role) {
                     switch (role) {
+                        case 'admin': return 'bg-indigo-100 text-indigo-800 border border-indigo-200';
+                        case 'guru': return 'bg-emerald-100 text-emerald-800 border border-emerald-200';
+                        case 'kepsek': return 'bg-amber-100 text-amber-800 border border-amber-200';
+                        case 'pengawas': return 'bg-teal-100 text-teal-800 border border-teal-200';
+                        case 'kcd': return 'bg-blue-100 text-blue-800 border border-blue-200';
+                        default: return 'bg-slate-100 text-slate-800';
+                    }
+                },
+                getRoleIcon(role) {
+                    switch (role) {
+                        case 'admin': return 'fa-user-gear';
                         case 'guru': return 'fa-chalkboard-user';
                         case 'kepsek': return 'fa-user-tie';
                         case 'pengawas': return 'fa-clipboard-check';
                         case 'kcd': return 'fa-landmark';
                         default: return 'fa-user';
                     }
-                };
-
-                const getStatusBadgeClass = (status) => {
-                    switch (status) {
-                        case 'Disetujui Kepsek': return 'bg-emerald-100 text-emerald-800 border border-emerald-300';
-                        case 'Diverifikasi Pengawas': return 'bg-blue-100 text-blue-800 border border-blue-300';
-                        case 'Ditinjau KCD': return 'bg-purple-100 text-purple-800 border border-purple-300';
-                        case 'Perlu Perbaikan': return 'bg-rose-100 text-rose-800 border border-rose-300';
-                        default: return 'bg-slate-100 text-slate-600 border border-slate-300';
-                    }
-                };
-
-                const getStatusIcon = (status) => {
-                    switch (status) {
-                        case 'Disetujui Kepsek': return 'fa-circle-check text-emerald-600';
-                        case 'Diverifikasi Pengawas': return 'fa-square-check text-blue-600';
-                        case 'Ditinjau KCD': return 'fa-building-circle-check text-purple-600';
-                        default: return 'fa-clock text-slate-400';
-                    }
-                };
-
-                const handleLogin = () => {
-                    if (!loginForm.value.username) {
-                        loginError.value = 'Silakan isi username NIP / NUPTK Anda.';
+                },
+                getAccountCountByRole(role) {
+                    return this.userAccountList.filter(u => u.role === role).length;
+                },
+                resetUserFilters() {
+                    this.userSearchQuery = '';
+                    this.userFilterRole = '';
+                },
+                openAddUserModal() {
+                    this.editingUser = false;
+                    this.userForm = {
+                        nama: '',
+                        username: '',
+                        password: '',
+                        role: 'guru',
+                        mapelUtama: '',
+                        jabatan: ''
+                    };
+                    this.showUserModal = true;
+                },
+                editUserAccount(user) {
+                    this.editingUser = true;
+                    this.userForm = { ...user };
+                    this.showUserModal = true;
+                },
+                confirmDeleteUser(user) {
+                    if (user.role === 'admin') {
+                        alert('Akun Administrator tidak dapat dihapus!');
                         return;
                     }
-
-                    if (loginType.value === 'guru') {
-                        currentUser.value = {
-                            nama: 'Drs. Ahmad Subagja, M.Pd.',
-                            nip: loginForm.value.username,
-                            jabatan: 'Guru Ahli Madya',
-                            mapelUtama: 'Matematika',
-                            role: 'guru'
-                        };
-                        currentTab.value = 'dashboard';
+                    if (confirm(`Apakah Anda yakin ingin menghapus akun ${user.nama}?`)) {
+                        this.userAccountList = this.userAccountList.filter(u => u.username !== user.username);
+                        this.showToast(`Akun ${user.nama} berhasil dihapus.`);
+                    }
+                },
+                saveUserAccount() {
+                    if (this.editingUser) {
+                        const idx = this.userAccountList.findIndex(u => u.username === this.userForm.username);
+                        if (idx !== -1) {
+                            this.userAccountList[idx] = { ...this.userForm };
+                        }
                     } else {
-                        const targetRole = loginForm.value.role;
-                        let namaRole = 'H. Ramli, S.Pd., M.Si.';
-                        if (targetRole === 'pengawas') namaRole = 'Dr. Hj. Endang Sulis, M.Pd.';
-                        if (targetRole === 'kcd') namaRole = 'Ir. M. Yusuf, M.M.';
-
-                        currentUser.value = {
-                            nama: namaRole,
-                            nip: loginForm.value.username,
-                            jabatan: getRoleLabel(targetRole),
-                            mapelUtama: 'Pembina SMAN 05 Bombana',
-                            role: targetRole
-                        };
-                        currentTab.value = 'monitor-dash';
+                        const exists = this.userAccountList.some(u => u.username === this.userForm.username);
+                        if (exists) {
+                            alert('Username / NIP tersebut sudah terdaftar!');
+                            return;
+                        }
+                        this.userAccountList.push({ ...this.userForm });
                     }
-
-                    isLoggedIn.value = true;
-                    loginError.value = '';
-                    showToast(`Selamat datang kembali, ${currentUser.value.nama}`);
-                };
-
-                const quickLogin = (nip, pass, role) => {
-                    loginForm.value.username = nip;
-                    loginForm.value.password = pass;
-                    loginForm.value.role = role === 'guru' ? 'kepsek' : role;
-                    loginType.value = role === 'guru' ? 'guru' : 'monitor';
-                    handleLogin();
-                };
-
-                const logout = () => {
-                    isLoggedIn.value = false;
-                    currentUser.value = { nama: '', nip: '', role: 'guru' };
-                    showToast('Anda telah keluar dari sistem.');
-                };
-
-                const onIndikatorChange = () => {
-                    formData.value.submenu = '';
-                };
-
-                const handleFileUpload = (event) => {
-                    const file = event.target.files[0];
-                    if (file) {
-                        formData.value.fileName = file.name;
-                        formData.value.driveUrl = 'https://drive.google.com/sample_file';
-                        showToast(`Berkas ${file.name} dipilih (Siap Diunggah Drive)`);
-                    }
-                };
-
-                const removeFile = () => {
-                    formData.value.fileName = '';
-                    formData.value.driveUrl = '';
-                };
-
-                const resetForm = () => {
-                    formData.value = {
-                        indikator: '',
-                        submenu: '',
-                        kelas: '',
-                        mapel: '',
-                        tanggal: new Date().toISOString().slice(0, 10),
-                        jam: '07:30 - 09:00 WITA',
-                        lokasi: 'Ruang Kelas XII IPA 1',
-                        uraian: '',
-                        hasil: '',
-                        refleksi: '',
-                        pembinaan: '',
-                        fileName: '',
-                        driveUrl: ''
-                    };
-                };
-
-                const saveJournal = () => {
-                    const newEntry = {
-                        id: 'j_' + Date.now(),
-                        nipGuru: currentUser.value.nip,
-                        namaGuru: currentUser.value.nama,
-                        ...formData.value,
-                        statusSupervisi: 'Belum Diperiksa'
-                    };
-
-                    allJournals.value.unshift(newEntry);
-                    showToast('Tersimpan! Jurnal harian berhasil dicatat ke sistem & Drive');
-                    resetForm();
-                    currentTab.value = 'history';
-                };
-
-                const openDetailModal = (journal) => {
-                    selectedDetailJournal.value = journal;
-                };
-
-                const openSupervisionModal = (journal) => {
-                    supervisionModalJournal.value = journal;
-                    supervisionForm.value.status = journal.statusSupervisi || 'Disetujui Kepsek';
-                    supervisionForm.value.catatan = journal.catatanSupervisi || '';
-                };
-
-                const saveSupervision = () => {
-                    if (supervisionModalJournal.value) {
-                        supervisionModalJournal.value.statusSupervisi = supervisionForm.value.status;
-                        supervisionModalJournal.value.catatanSupervisi = supervisionForm.value.catatan;
-                        showToast('Catatan supervisi dan status verifikasi berhasil disimpan!');
-                        supervisionModalJournal.value = null;
-                    }
-                };
-
-                const getTeacherJournalCount = (nip) => {
-                    return allJournals.value.filter(j => (j.nipGuru || j.nip) === nip).length;
-                };
-
-                const getTeacherClassCount = (nip) => {
-                    return allJournals.value.filter(j => (j.nipGuru || j.nip) === nip && j.submenu === 'Pelaksanaan Tatap Muka Kelas').length;
-                };
-
-                const openGasModal = () => {
-                    gasAppUrlInput.value = gasAppUrl.value;
-                    showGasModal.value = true;
-                };
-
-                const saveGasUrl = () => {
-                    gasAppUrl.value = gasAppUrlInput.value;
-                    showGasModal.value = false;
-                    showToast('URL Google Apps Script berhasil diperbarui');
-                };
-
-                const testGasConnection = () => {
-                    isLoading.value = true;
-                    setTimeout(() => {
-                        isLoading.value = false;
-                        showToast('Koneksi ke Google Apps Script & Drive Berhasil!');
-                    }, 1200);
-                };
-
-                const fetchDataFromGas = () => {
-                    isLoading.value = true;
-                    setTimeout(() => {
-                        isLoading.value = false;
-                        showToast('Data Jurnal dari Google Sheets Terbaca');
-                    }, 1000);
-                };
-
-                const triggerPrint = () => {
-                    window.print();
-                };
-
-                const formatDate = (dateStr) => {
-                    if (!dateStr) return '-';
-                    const parts = dateStr.split('-');
-                    if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
-                    return dateStr;
-                };
-
-                return {
-                    isLoggedIn,
-                    loginType,
-                    loginError,
-                    loginForm,
-                    currentUser,
-                    currentTab,
-                    isSidebarHidden,
-                    isLoading,
-                    toastMessage,
-                    gasAppUrl,
-                    gasAppUrlInput,
-                    showGasModal,
-                    searchQuery,
-                    filterIndikator,
-                    filterKelas,
-                    filterGuru,
-                    filterStatus,
-                    selectedDetailJournal,
-                    supervisionModalJournal,
-                    supervisionForm,
-                    teacherList,
-                    kelasList,
-                    categoryMap,
-                    formData,
-                    allJournals,
-                    userJournals,
-                    recentUserJournals,
-                    filteredAllJournals,
-                    currentSubmenus,
-                    totalTatapMuka,
-                    totalBuktiDukung,
-                    verifiedJournalsCount,
-                    pendingJournalsCount,
-                    todayFormatted,
-                    showToast,
-                    toggleSidebar,
-                    selectTab,
-                    getRoleLabel,
-                    getRoleIcon,
-                    getStatusBadgeClass,
-                    getStatusIcon,
-                    handleLogin,
-                    quickLogin,
-                    logout,
-                    onIndikatorChange,
-                    handleFileUpload,
-                    removeFile,
-                    resetForm,
-                    saveJournal,
-                    openDetailModal,
-                    openSupervisionModal,
-                    saveSupervision,
-                    getTeacherJournalCount,
-                    getTeacherClassCount,
-                    openGasModal,
-                    saveGasUrl,
-                    testGasConnection,
-                    fetchDataFromGas,
-                    triggerPrint,
-                    formatDate
-                };
+                    this.showUserModal = false;
+                    this.showToast('Data akun pengguna berhasil disimpan!');
+                },
+                openGasModal() {
+                    this.selectTab('settings');
+                },
+                saveGasUrl() {
+                    this.showToast('Konfigurasi URL Google Apps Script berhasil disimpan!');
+                },
+                viewJournalDetail(j) {
+                    alert(`Detail Jurnal ${j.mapel} (${j.kelas}):\nMateri: ${j.materi}`);
+                }
             }
         }).mount('#app');
     </script>
