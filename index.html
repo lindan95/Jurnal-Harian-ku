@@ -229,6 +229,14 @@
                                 <i class="fa-solid fa-file-invoice text-base w-5 text-center"></i>
                                 Rekapitulasi & Cetak
                             </button>
+                            <!-- TAB BARU: PENGATURAN KELAS -->
+                            <button @click="selectTab('kelas')" :class="currentTab === 'kelas' ? 'bg-emerald-600 text-white shadow-md font-semibold' : 'text-slate-600 hover:bg-slate-100 font-medium'" class="w-full px-3.5 py-3 rounded-xl text-xs sm:text-sm transition flex items-center justify-between text-left cursor-pointer">
+                                <div class="flex items-center gap-3">
+                                    <i class="fa-solid fa-chalkboard text-base w-5 text-center"></i>
+                                    Pengaturan Kelas
+                                </div>
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold" :class="currentTab === 'kelas' ? 'bg-emerald-800 text-white' : 'bg-slate-200 text-slate-700'">{{ kelasList.length }}</span>
+                            </button>
                             <button @click="selectTab('settings')" :class="currentTab === 'settings' ? 'bg-emerald-600 text-white shadow-md font-semibold' : 'text-slate-600 hover:bg-slate-100 font-medium'" class="w-full px-3.5 py-3 rounded-xl text-xs sm:text-sm transition flex items-center justify-start gap-3 text-left cursor-pointer">
                                 <i class="fa-solid fa-gear text-base w-5 text-center"></i>
                                 Pengaturan & GAS
@@ -314,11 +322,11 @@
 
                                 <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
                                     <div class="w-12 h-12 rounded-2xl bg-blue-100 text-blue-700 flex items-center justify-center text-xl shrink-0">
-                                        <i class="fa-solid fa-list-check"></i>
+                                        <i class="fa-solid fa-school"></i>
                                     </div>
                                     <div>
-                                        <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Indikator Aktif</p>
-                                        <h3 class="text-xl font-extrabold text-slate-800">{{ activeIndicatorsCount }} <span class="text-xs font-normal text-slate-500">kategori</span></h3>
+                                        <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Total Kelas Aktif</p>
+                                        <h3 class="text-xl font-extrabold text-slate-800">{{ kelasList.length }} <span class="text-xs font-normal text-slate-500">kelas</span></h3>
                                     </div>
                                 </div>
 
@@ -369,6 +377,16 @@
                                                     <i class="fa-solid fa-pen-to-square"></i>
                                                 </div>
                                                 <span>Input Jurnal Hari Ini</span>
+                                            </div>
+                                            <i class="fa-solid fa-chevron-right text-slate-400 group-hover:translate-x-1 transition-transform"></i>
+                                        </button>
+
+                                        <button @click="selectTab('kelas')" class="w-full p-3 bg-slate-50 hover:bg-indigo-50 border border-slate-200 hover:border-indigo-300 rounded-xl text-xs font-semibold text-slate-700 hover:text-indigo-800 transition flex items-center justify-between group">
+                                            <div class="flex items-center gap-2.5">
+                                                <div class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold">
+                                                    <i class="fa-solid fa-chalkboard"></i>
+                                                </div>
+                                                <span>Kelola Pengaturan Kelas</span>
                                             </div>
                                             <i class="fa-solid fa-chevron-right text-slate-400 group-hover:translate-x-1 transition-transform"></i>
                                         </button>
@@ -433,6 +451,7 @@
                                                         {{ j.indikator }}
                                                     </span>
                                                     <div class="font-semibold text-slate-700">{{ j.submenu }}</div>
+                                                    <div v-if="j.kelas" class="text-[10px] text-amber-700 font-bold">Kelas: {{ j.kelas }}</div>
                                                 </td>
                                                 <td class="p-3 max-w-xs">
                                                     <p class="line-clamp-2 text-slate-700">{{ j.uraian }}</p>
@@ -509,22 +528,24 @@
                                     </div>
                                 </div>
 
-                                <!-- Conditional Fields: Kelas & Mapel -->
+                                <!-- Conditional Fields: Kelas & Mapel (Menggunakan kelasList Dinamis) -->
                                 <div v-if="formData.submenu === 'Pelaksanaan Tatap Muka Kelas'" class="p-4 bg-amber-50/70 border border-amber-200 rounded-xl space-y-3 transition-all">
-                                    <div class="flex items-center gap-2 text-amber-800 font-bold text-xs uppercase tracking-wider">
-                                        <i class="fa-solid fa-chalkboard-user"></i> Detail Pembelajaran Tatap Muka
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center gap-2 text-amber-800 font-bold text-xs uppercase tracking-wider">
+                                            <i class="fa-solid fa-chalkboard-user"></i> Detail Pembelajaran Tatap Muka
+                                        </div>
+                                        <button type="button" @click="selectTab('kelas')" class="text-[11px] font-bold text-amber-800 hover:underline flex items-center gap-1">
+                                            <i class="fa-solid fa-gear"></i> Kelola Daftar Kelas
+                                        </button>
                                     </div>
                                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <div>
                                             <label class="block text-xs font-semibold text-slate-700 mb-1">Kelas <span class="text-red-500">*</span></label>
                                             <select v-model="formData.kelas" required class="w-full bg-white border border-amber-300 rounded-xl px-3 py-2 text-xs sm:text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
                                                 <option value="" disabled>-- Pilih Kelas --</option>
-                                                <option value="X IPA 1">X IPA 1</option>
-                                                <option value="X IPA 2">X IPA 2</option>
-                                                <option value="XI IPA 1">XI IPA 1</option>
-                                                <option value="XI IPS 1">XI IPS 1</option>
-                                                <option value="XII IPA 1">XII IPA 1</option>
-                                                <option value="XII IPS 1">XII IPS 1</option>
+                                                <option v-for="k in kelasList" :key="k.id || k.nama" :value="k.nama">
+                                                    {{ k.nama }} {{ k.tingkat ? '(' + k.tingkat + ')' : '' }}
+                                                </option>
                                             </select>
                                         </div>
                                         <div>
@@ -631,18 +652,24 @@
                                 </button>
                             </div>
 
-                            <!-- Filters & Search -->
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pb-2">
+                            <!-- Filters & Search (Termasuk Filter Kelas) -->
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pb-2">
                                 <div class="relative">
                                     <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400 text-xs">
                                         <i class="fa-solid fa-magnifying-glass"></i>
                                     </span>
-                                    <input v-model="searchQuery" type="text" placeholder="Cari berdasarkan uraian, lokasi, kegiatan..." class="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-emerald-500">
+                                    <input v-model="searchQuery" type="text" placeholder="Cari uraian, lokasi, kegiatan..." class="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-emerald-500">
                                 </div>
                                 <div>
                                     <select v-model="filterIndikator" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-emerald-500">
                                         <option value="">Semua Indikator Kegiatan</option>
                                         <option v-for="(subList, category) in categoryMap" :key="category" :value="category">{{ category }}</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <select v-model="filterKelas" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-emerald-500">
+                                        <option value="">Semua Kelas</option>
+                                        <option v-for="k in kelasList" :key="k.id || k.nama" :value="k.nama">{{ k.nama }}</option>
                                     </select>
                                 </div>
                             </div>
@@ -933,7 +960,127 @@
                             </form>
                         </div>
 
-                        <!-- TAB 5: PENGATURAN -->
+                        <!-- TAB BUKU / HALAMAN BARU: PENGATURAN KELAS -->
+                        <div v-if="currentTab === 'kelas'" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6 space-y-6">
+                            <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-3 border-b border-slate-100 pb-4">
+                                <div>
+                                    <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                                        <i class="fa-solid fa-chalkboard text-emerald-600"></i> Pengaturan & Pengelolaan Kelas
+                                    </h2>
+                                    <p class="text-xs text-slate-500">Kelola daftar kelas, tingkat/fase pembelajaran, wali kelas, dan kuota siswa untuk pilihan jurnal harian.</p>
+                                </div>
+                                <div class="flex gap-2">
+                                    <button @click="resetClasses" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold border transition flex items-center gap-1.5">
+                                        <i class="fa-solid fa-rotate-left text-amber-600"></i> Reset Standar SMAN 05
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Grid Input Tambah/Edit Kelas & Tabel Kelas -->
+                            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                
+                                <!-- Form Tambah/Edit Kelas -->
+                                <div class="bg-slate-50 p-4 sm:p-5 rounded-2xl border border-slate-200 space-y-4">
+                                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-2">
+                                        <i class="fa-solid" :class="editingClassId ? 'fa-pen-to-square text-amber-600' : 'fa-plus-circle text-emerald-600'"></i>
+                                        {{ editingClassId ? 'Edit Data Kelas' : 'Tambah Kelas Baru' }}
+                                    </h3>
+
+                                    <form @submit.prevent="saveClassItem" class="space-y-3.5">
+                                        <div>
+                                            <label class="block text-xs font-bold text-slate-700 mb-1">Nama Kelas <span class="text-red-500">*</span></label>
+                                            <input v-model="classForm.nama" type="text" placeholder="Contoh: XII IPA 1 atau X Merdeka 1" required class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none">
+                                        </div>
+
+                                        <div>
+                                            <label class="block text-xs font-bold text-slate-700 mb-1">Tingkat / Fase</label>
+                                            <select v-model="classForm.tingkat" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none">
+                                                <option value="Kelas 10 (Fase E)">Kelas 10 (Fase E)</option>
+                                                <option value="Kelas 11 (Fase F)">Kelas 11 (Fase F)</option>
+                                                <option value="Kelas 12 (Fase F)">Kelas 12 (Fase F)</option>
+                                                <option value="Lainnya">Lainnya</option>
+                                            </select>
+                                        </div>
+
+                                        <div>
+                                            <label class="block text-xs font-bold text-slate-700 mb-1">Wali Kelas</label>
+                                            <input v-model="classForm.waliKelas" type="text" placeholder="Contoh: Drs. Ahmad Subagja, M.Pd." class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none">
+                                        </div>
+
+                                        <div>
+                                            <label class="block text-xs font-bold text-slate-700 mb-1">Jumlah Siswa</label>
+                                            <input v-model.number="classForm.jumlahSiswa" type="number" placeholder="32" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none">
+                                        </div>
+
+                                        <div class="flex items-center gap-2 pt-2">
+                                            <button v-if="editingClassId" type="button" @click="cancelEditClass" class="w-1/2 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl text-xs font-semibold transition">
+                                                Batal
+                                            </button>
+                                            <button type="submit" class="py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition shadow" :class="editingClassId ? 'w-1/2' : 'w-full'">
+                                                {{ editingClassId ? 'Update Kelas' : 'Simpan Kelas Baru' }}
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+
+                                <!-- Tabel Daftar Kelas -->
+                                <div class="lg:col-span-2 space-y-3">
+                                    <div class="flex justify-between items-center">
+                                        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">
+                                            Daftar Kelas Terdaftar ({{ kelasList.length }})
+                                        </h3>
+                                        <span class="text-[11px] text-slate-400">Otomatis muncul di pilihan Form Jurnal</span>
+                                    </div>
+
+                                    <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+                                        <table class="w-full text-left text-xs text-slate-600">
+                                            <thead class="bg-slate-100 text-slate-700 uppercase font-bold text-[10px] border-b border-slate-200">
+                                                <tr>
+                                                    <th class="p-3 w-10 text-center">No</th>
+                                                    <th class="p-3">Nama Kelas</th>
+                                                    <th class="p-3">Tingkat / Fase</th>
+                                                    <th class="p-3">Wali Kelas</th>
+                                                    <th class="p-3 text-center">Siswa</th>
+                                                    <th class="p-3 text-center w-20">Aksi</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody class="divide-y divide-slate-100">
+                                                <tr v-if="kelasList.length === 0">
+                                                    <td colspan="6" class="p-6 text-center text-slate-400">
+                                                        Belum ada kelas terdaftar. Klik 'Reset Standar SMAN 05' untuk memuat kelas default.
+                                                    </td>
+                                                </tr>
+                                                <tr v-for="(k, idx) in kelasList" :key="k.id" class="hover:bg-slate-50 transition">
+                                                    <td class="p-3 text-center font-bold text-slate-400">{{ idx + 1 }}</td>
+                                                    <td class="p-3">
+                                                        <span class="font-extrabold text-slate-800 text-xs block">{{ k.nama }}</span>
+                                                    </td>
+                                                    <td class="p-3 font-medium text-slate-600">
+                                                        <span class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-[10px] border border-slate-200">{{ k.tingkat || '-' }}</span>
+                                                    </td>
+                                                    <td class="p-3 text-slate-700">{{ k.waliKelas || '-' }}</td>
+                                                    <td class="p-3 text-center font-bold text-slate-700">{{ k.jumlahSiswa || '-' }}</td>
+                                                    <td class="p-3 text-center whitespace-nowrap">
+                                                        <div class="flex items-center justify-center gap-1.5">
+                                                            <button @click="editClass(k)" title="Edit Kelas" class="p-1.5 bg-slate-100 hover:bg-amber-100 text-slate-600 hover:text-amber-700 rounded-lg transition">
+                                                                <i class="fa-solid fa-pen"></i>
+                                                            </button>
+                                                            <button @click="deleteClass(k.id)" title="Hapus Kelas" class="p-1.5 bg-slate-100 hover:bg-red-100 text-slate-600 hover:text-red-600 rounded-lg transition">
+                                                                <i class="fa-solid fa-trash"></i>
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <!-- TAB 5: PENGATURAN & GAS -->
                         <div v-if="currentTab === 'settings'" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6 space-y-6">
                             <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-2 border-b border-slate-100 pb-4">
                                 <div>
@@ -1245,13 +1392,14 @@
                 const showGasModal = ref(false);
                 const searchQuery = ref('');
                 const filterIndikator = ref('');
+                const filterKelas = ref('');
 
                 // GAS Integration Config
                 const gasAppUrl = ref(localStorage.getItem('SMAN5_GAS_URL') || '');
                 const tempGasUrl = ref(localStorage.getItem('SMAN5_GAS_URL') || '');
 
                 // Application & School Settings
-                const settings = ref({
+                const settings = ref(JSON.parse(localStorage.getItem('SMAN5_SETTINGS')) || {
                     tahunAjaran: '2025/2026',
                     semester: 'Ganjil',
                     namaKepsek: 'H. Sudirman, S.Pd., M.M.',
@@ -1262,11 +1410,34 @@
                     logoPendidikanUrl: ''
                 });
 
+                // Default List Kelas (SMAN 05 Bombana)
+                const defaultKelasList = [
+                    { id: 1, nama: 'X IPA 1', tingkat: 'Kelas 10 (Fase E)', waliKelas: 'Siti Rahma, S.Pd.', jumlahSiswa: 32 },
+                    { id: 2, nama: 'X IPA 2', tingkat: 'Kelas 10 (Fase E)', waliKelas: 'Budi Santoso, S.Pd.', jumlahSiswa: 30 },
+                    { id: 3, nama: 'XI IPA 1', tingkat: 'Kelas 11 (Fase F)', waliKelas: 'Drs. Ahmad Subagja, M.Pd.', jumlahSiswa: 31 },
+                    { id: 4, nama: 'XI IPS 1', tingkat: 'Kelas 11 (Fase F)', waliKelas: 'Nurhayati, S.S.', jumlahSiswa: 28 },
+                    { id: 5, nama: 'XII IPA 1', tingkat: 'Kelas 12 (Fase F)', waliKelas: 'Dra. Endang Purwanti', jumlahSiswa: 29 },
+                    { id: 6, nama: 'XII IPS 1', tingkat: 'Kelas 12 (Fase F)', waliKelas: 'Hasanuddin, S.Ag.', jumlahSiswa: 27 }
+                ];
+
+                const kelasList = ref(JSON.parse(localStorage.getItem('SMAN5_KELAS_LIST')) || defaultKelasList);
+
+                // Form & State Pengaturan Kelas
+                const classForm = ref({
+                    id: null,
+                    nama: '',
+                    tingkat: 'Kelas 10 (Fase E)',
+                    waliKelas: '',
+                    jumlahSiswa: null
+                });
+                const editingClassId = ref(null);
+
                 // Auth & Profile State
                 const isLoggedIn = ref(true);
                 const loginForm = ref({ username: '', password: '' });
                 const loginError = ref('');
-                const currentUser = ref({ 
+                
+                const currentUser = ref(JSON.parse(localStorage.getItem('SMAN5_USER')) || { 
                     nama: 'Drs. Ahmad Subagja, M.Pd.', 
                     nip: '19850817 201001 1 002',
                     nuptk: '3456789012345678',
@@ -1346,8 +1517,8 @@
                     kelas: '',
                     mapel: '',
                     tanggal: new Date().toISOString().substring(0, 10),
-                    jam: '07:30 - 09:00 WITA',
-                    lokasi: 'SMA Negeri 05 Bombana',
+                    jam: settings.value.defaultJam || '07:30 - 09:00 WITA',
+                    lokasi: settings.value.defaultLokasi || 'SMA Negeri 05 Bombana',
                     uraian: '',
                     hasil: '',
                     refleksi: '',
@@ -1358,10 +1529,10 @@
                     filePreview: null
                 });
 
-                // Default Local Demo Data
-                const journals = ref([
+                // Default Local Demo Data Jurnal
+                const initialJournals = [
                     {
-                        id: 1,
+                        id: '1',
                         indikator: "Pelaksanaan Pembelajaran",
                         submenu: "Pelaksanaan Tatap Muka Kelas",
                         kelas: "XII IPA 1",
@@ -1378,7 +1549,7 @@
                         filePreview: "https://placehold.co/600x400/059669/ffffff?text=Bukti+Dukung+Tatap+Muka"
                     },
                     {
-                        id: 2,
+                        id: '2',
                         indikator: "Kehadiran ASN",
                         submenu: "Upacara & Apel Pagi",
                         tanggal: "2026-08-17",
@@ -1392,7 +1563,9 @@
                         driveUrl: "https://drive.google.com",
                         filePreview: "https://placehold.co/600x400/0284c7/ffffff?text=Bukti+Dukung+Apel+Pagi"
                     }
-                ]);
+                ];
+
+                const journals = ref(JSON.parse(localStorage.getItem('SMAN5_JOURNALS')) || initialJournals);
 
                 const gasScriptCode = ref(`// =================================================================
 // GOOGLE APPS SCRIPT BACKEND CODE (Code.gs)
@@ -1405,11 +1578,9 @@ const DRIVE_FOLDER_NAME = "Jurnal_Guru_SMAN05_Files";
 
 function doGet(e) {
   const action = e.parameter.action;
-  
   if (action === "getAll") {
     return handleGetAll();
   }
-  
   return responseJSON({ status: "success", message: "API Jurnal SMAN 05 Bombana Aktif!" });
 }
 
@@ -1557,35 +1728,66 @@ function responseJSON(obj) {
     .setMimeType(ContentService.MimeType.JSON);
 }`);
 
-                const fetchDataFromGas = async () => {
-                    if (!gasAppUrl.value) return;
-                    isLoading.value = true;
-                    try {
-                        const response = await fetch(`${gasAppUrl.value}?action=getAll`);
-                        const result = await response.json();
-                        if (result.status === 'success' && Array.isArray(result.journals)) {
-                            journals.value = result.journals;
-                            showToast("Data jurnal berhasil disinkronkan dari Google Sheets!");
-                        }
-                    } catch (err) {
-                        console.error("Gagal mengambil data dari GAS:", err);
-                        showToast("Koneksi GAS bermasalah, menggunakan cache lokal.");
-                    } finally {
-                        isLoading.value = false;
-                    }
-                };
-
-                onMounted(() => {
-                    if (gasAppUrl.value) {
-                        fetchDataFromGas();
-                    }
+                // Computed Properties
+                const todayFormatted = computed(() => {
+                    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                    return new Date().toLocaleDateString('id-ID', options);
                 });
 
+                const currentMonthYear = computed(() => {
+                    const options = { month: 'long', year: 'numeric' };
+                    return new Date().toLocaleDateString('id-ID', options);
+                });
+
+                const currentSubmenus = computed(() => {
+                    return formData.value.indikator ? categoryMap[formData.value.indikator] || [] : [];
+                });
+
+                const totalTatapMuka = computed(() => {
+                    return journals.value.filter(j => j.submenu === 'Pelaksanaan Tatap Muka Kelas').length;
+                });
+
+                const activeIndicatorsCount = computed(() => {
+                    const unique = new Set(journals.value.map(j => j.indikator));
+                    return unique.size;
+                });
+
+                const totalBuktiDukung = computed(() => {
+                    return journals.value.filter(j => j.driveUrl || j.fileName).length;
+                });
+
+                const indicatorCounts = computed(() => {
+                    const counts = {};
+                    Object.keys(categoryMap).forEach(cat => counts[cat] = 0);
+                    journals.value.forEach(j => {
+                        if (counts[j.indikator] !== undefined) counts[j.indikator]++;
+                    });
+                    return counts;
+                });
+
+                const recentJournals = computed(() => {
+                    return [...journals.value].slice(0, 5);
+                });
+
+                const filteredJournals = computed(() => {
+                    return journals.value.filter(j => {
+                        const matchSearch = !searchQuery.value || 
+                            j.uraian.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+                            j.lokasi.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+                            j.submenu.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+                            (j.kelas && j.kelas.toLowerCase().includes(searchQuery.value.toLowerCase()));
+                        
+                        const matchIndikator = !filterIndikator.value || j.indikator === filterIndikator.value;
+                        const matchKelas = !filterKelas.value || j.kelas === filterKelas.value;
+
+                        return matchSearch && matchIndikator && matchKelas;
+                    });
+                });
+
+                // Methods
                 const showToast = (msg) => {
                     toastMessage.value = msg;
-                    setTimeout(() => {
-                        toastMessage.value = '';
-                    }, 3500);
+                    setTimeout(() => { toastMessage.value = ''; }, 3500);
                 };
 
                 const selectTab = (tab) => {
@@ -1605,20 +1807,30 @@ function responseJSON(obj) {
                     gasAppUrl.value = tempGasUrl.value.trim();
                     localStorage.setItem('SMAN5_GAS_URL', gasAppUrl.value);
                     showToast("URL Google Apps Script berhasil disimpan!");
-                    if (gasAppUrl.value) {
-                        fetchDataFromGas();
-                    }
                     showGasModal.value = false;
+                    fetchDataFromGas();
                 };
 
                 const copyGasScript = () => {
                     navigator.clipboard.writeText(gasScriptCode.value);
-                    showToast("Kode Code.gs berhasil disalin ke clipboard!");
+                    showToast("Kode Backend Code.gs telah disalin ke clipboard!");
                 };
 
-                const currentSubmenus = computed(() => {
-                    return formData.value.indikator ? categoryMap[formData.value.indikator] || [] : [];
-                });
+                const calculatePercentage = (count) => {
+                    if (journals.value.length === 0) return 0;
+                    return Math.round((count / journals.value.length) * 100);
+                };
+
+                const formatDate = (dateStr) => {
+                    if (!dateStr) return '-';
+                    try {
+                        const d = new Date(dateStr);
+                        if (isNaN(d.getTime())) return dateStr;
+                        return d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+                    } catch (e) {
+                        return dateStr;
+                    }
+                };
 
                 const onIndikatorChange = () => {
                     formData.value.submenu = '';
@@ -1626,53 +1838,23 @@ function responseJSON(obj) {
                     formData.value.mapel = '';
                 };
 
-                const quickLogin = (nip, dob, nama) => {
-                    loginForm.value.username = nip;
-                    loginForm.value.password = dob;
-                    currentUser.value = { nama, nip, jabatan: 'Guru Ahli Madya', mapelUtama: 'Matematika Wajib' };
-                    isLoggedIn.value = true;
-                    loginError.value = '';
-                    showToast(`Selamat datang kembali, ${nama}!`);
-                };
-
-                const handleLogin = () => {
-                    if (loginForm.value.username && loginForm.value.password) {
-                        currentUser.value = {
-                            nama: loginForm.value.username.length > 10 ? 'Drs. Ahmad Subagja, M.Pd.' : 'Tenaga Pendidik',
-                            nip: loginForm.value.username,
-                            jabatan: 'Guru Mata Pelajaran',
-                            mapelUtama: 'Kurikulum Merdeka'
-                        };
-                        isLoggedIn.value = true;
-                        loginError.value = '';
-                        showToast("Berhasil masuk ke portal jurnal!");
-                    } else {
-                        loginError.value = 'Mohon isi NIP/NIK dan Tanggal Lahir Anda.';
-                    }
-                };
-
-                const logout = () => {
-                    isLoggedIn.value = false;
-                    loginForm.value = { username: '', password: '' };
-                };
-
                 const handleFileUpload = (e) => {
                     const file = e.target.files[0];
-                    if (file) {
-                        formData.value.fileName = file.name;
-                        formData.value.fileMimeType = file.type;
+                    if (!file) return;
+                    
+                    formData.value.fileName = file.name;
+                    formData.value.fileMimeType = file.type;
 
-                        const reader = new FileReader();
-                        reader.onload = (event) => {
-                            formData.value.fileBase64 = event.target.result;
-                            if (file.type.startsWith('image/')) {
-                                formData.value.filePreview = event.target.result;
-                            } else {
-                                formData.value.filePreview = null;
-                            }
-                        };
-                        reader.readAsDataURL(file);
-                    }
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        formData.value.fileBase64 = event.target.result;
+                        if (file.type.startsWith('image/')) {
+                            formData.value.filePreview = event.target.result;
+                        } else {
+                            formData.value.filePreview = null;
+                        }
+                    };
+                    reader.readAsDataURL(file);
                 };
 
                 const removeFile = () => {
@@ -1680,67 +1862,6 @@ function responseJSON(obj) {
                     formData.value.fileBase64 = '';
                     formData.value.fileMimeType = '';
                     formData.value.filePreview = null;
-                };
-
-                const saveJournal = async () => {
-                    isLoading.value = true;
-                    const id = Date.now().toString();
-
-                    const newEntry = {
-                        id: id,
-                        ...JSON.parse(JSON.stringify(formData.value))
-                    };
-
-                    // Send to Google Apps Script Backend if configured
-                    if (gasAppUrl.value) {
-                        try {
-                            const response = await fetch(gasAppUrl.value, {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                                body: JSON.stringify({
-                                    action: 'saveJournal',
-                                    data: newEntry
-                                })
-                            });
-                            const res = await response.json();
-                            if (res.status === 'success') {
-                                if (res.driveUrl) newEntry.driveUrl = res.driveUrl;
-                                showToast("Berhasil tersimpan ke Google Sheets & Drive!");
-                            }
-                        } catch (err) {
-                            console.error("Gagal simpan ke GAS:", err);
-                            showToast("Tersimpan secara lokal (Gagal koneksi GAS).");
-                        }
-                    } else {
-                        showToast("Data jurnal berhasil disimpan di browser (Local Mode)!");
-                    }
-
-                    journals.value.unshift(newEntry);
-                    resetForm();
-                    isLoading.value = false;
-                    currentTab.value = 'history';
-                };
-
-                const deleteJournal = async (id) => {
-                    if (!confirm("Apakah Anda yakin ingin menghapus catatan jurnal ini?")) return;
-
-                    journals.value = journals.value.filter(j => j.id !== id);
-
-                    if (gasAppUrl.value) {
-                        try {
-                            await fetch(gasAppUrl.value, {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                                body: JSON.stringify({
-                                    action: 'deleteJournal',
-                                    id: id
-                                })
-                            });
-                        } catch (e) {
-                            console.error(e);
-                        }
-                    }
-                    showToast("Catatan jurnal telah dihapus.");
                 };
 
                 const resetForm = () => {
@@ -1763,181 +1884,305 @@ function responseJSON(obj) {
                     };
                 };
 
+                const saveJournal = async () => {
+                    isLoading.value = true;
+                    const newJournal = {
+                        id: Date.now().toString(),
+                        ...formData.value
+                    };
+
+                    if (gasAppUrl.value) {
+                        try {
+                            const res = await fetch(gasAppUrl.value, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ action: 'saveJournal', data: newJournal })
+                            });
+                            const result = await res.json();
+                            if (result.status === 'success') {
+                                if (result.driveUrl) newJournal.driveUrl = result.driveUrl;
+                                showToast("Jurnal berhasil disimpan ke Google Sheets & Drive!");
+                            }
+                        } catch (err) {
+                            console.error("Gagal kirim ke GAS:", err);
+                            showToast("Gagal terhubung ke GAS, disimpan secara lokal.");
+                        }
+                    } else {
+                        showToast("Jurnal disimpan di penyimpanan lokal browser.");
+                    }
+
+                    journals.value.unshift(newJournal);
+                    localStorage.setItem('SMAN5_JOURNALS', JSON.stringify(journals.value));
+                    resetForm();
+                    isLoading.value = false;
+                    currentTab.value = 'history';
+                };
+
+                const deleteJournal = async (id) => {
+                    if (!confirm("Apakah Anda yakin ingin menghapus catatan jurnal ini?")) return;
+                    
+                    isLoading.value = true;
+                    if (gasAppUrl.value) {
+                        try {
+                            await fetch(gasAppUrl.value, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ action: 'deleteJournal', id: id })
+                            });
+                        } catch (err) {
+                            console.error("Gagal hapus dari GAS:", err);
+                        }
+                    }
+
+                    journals.value = journals.value.filter(j => j.id !== id);
+                    localStorage.setItem('SMAN5_JOURNALS', JSON.stringify(journals.value));
+                    isLoading.value = false;
+                    showToast("Jurnal berhasil dihapus.");
+                };
+
+                const fetchDataFromGas = async () => {
+                    if (!gasAppUrl.value) return;
+                    isLoading.value = true;
+                    try {
+                        const response = await fetch(`${gasAppUrl.value}?action=getAll`);
+                        const result = await response.json();
+                        if (result.status === 'success' && Array.isArray(result.journals)) {
+                            journals.value = result.journals;
+                            localStorage.setItem('SMAN5_JOURNALS', JSON.stringify(journals.value));
+                            showToast("Data jurnal berhasil disinkronkan dari Google Sheets!");
+                        }
+                    } catch (err) {
+                        console.error("Gagal mengambil data dari GAS:", err);
+                        showToast("Koneksi GAS bermasalah, menggunakan cache lokal.");
+                    } finally {
+                        isLoading.value = false;
+                    }
+                };
+
+                const openDetailModal = (item) => {
+                    selectedJournalModal.value = item;
+                };
+
+                // --- METODE PENGELOLAAN KELAS (PENGATURAN KELAS) ---
+                const saveClassItem = () => {
+                    if (!classForm.value.nama) return;
+
+                    if (editingClassId.value) {
+                        const index = kelasList.value.findIndex(k => k.id === editingClassId.value);
+                        if (index !== -1) {
+                            kelasList.value[index] = { ...classForm.value, id: editingClassId.value };
+                            showToast(`Data kelas ${classForm.value.nama} berhasil diperbarui.`);
+                        }
+                    } else {
+                        const newClass = {
+                            id: Date.now(),
+                            ...classForm.value
+                        };
+                        kelasList.value.push(newClass);
+                        showToast(`Kelas ${classForm.value.nama} berhasil ditambahkan!`);
+                    }
+
+                    localStorage.setItem('SMAN5_KELAS_LIST', JSON.stringify(kelasList.value));
+                    cancelEditClass();
+                };
+
+                const editClass = (item) => {
+                    editingClassId.value = item.id;
+                    classForm.value = { ...item };
+                };
+
+                const cancelEditClass = () => {
+                    editingClassId.value = null;
+                    classForm.value = {
+                        id: null,
+                        nama: '',
+                        tingkat: 'Kelas 10 (Fase E)',
+                        waliKelas: '',
+                        jumlahSiswa: null
+                    };
+                };
+
+                const deleteClass = (id) => {
+                    if (!confirm("Apakah Anda yakin ingin menghapus kelas ini dari daftar?")) return;
+                    kelasList.value = kelasList.value.filter(k => k.id !== id);
+                    localStorage.setItem('SMAN5_KELAS_LIST', JSON.stringify(kelasList.value));
+                    showToast("Kelas berhasil dihapus.");
+                };
+
+                const resetClasses = () => {
+                    if (!confirm("Reset daftar kelas kembali ke susunan standar SMAN 05 Bombana?")) return;
+                    kelasList.value = [...defaultKelasList];
+                    localStorage.setItem('SMAN5_KELAS_LIST', JSON.stringify(kelasList.value));
+                    showToast("Daftar kelas berhasil di-reset ke standar SMAN 05 Bombana.");
+                };
+
+                // Auth Logic
+                const handleLogin = () => {
+                    if (!loginForm.value.username || !loginForm.value.password) {
+                        loginError.value = 'Silakan isi Username dan Password terlebih dahulu.';
+                        return;
+                    }
+                    isLoggedIn.value = true;
+                    loginError.value = '';
+                    showToast("Login berhasil! Selamat bekerja.");
+                };
+
+                const quickLogin = (nip, pass, nama) => {
+                    loginForm.value.username = nip;
+                    loginForm.value.password = pass;
+                    currentUser.value.nama = nama;
+                    currentUser.value.nip = nip;
+                    isLoggedIn.value = true;
+                    showToast(`Login demo berhasil sebagai ${nama}`);
+                };
+
+                const logout = () => {
+                    isLoggedIn.value = false;
+                    showToast("Anda telah keluar dari sistem.");
+                };
+
+                // Profile Logic
                 const handleAvatarUpload = (e) => {
                     const file = e.target.files[0];
-                    if (file) {
-                        const reader = new FileReader();
-                        reader.onload = (ev) => {
-                            profileForm.value.avatarUrl = ev.target.result;
-                            showToast("Foto profil terpilih!");
-                        };
-                        reader.readAsDataURL(file);
-                    }
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        profileForm.value.avatarUrl = event.target.result;
+                    };
+                    reader.readAsDataURL(file);
                 };
 
                 const removeAvatar = () => {
                     profileForm.value.avatarUrl = '';
                 };
 
-                const handleLogoSekolahUpload = (e) => {
-                    const file = e.target.files[0];
-                    if (file) {
-                        const reader = new FileReader();
-                        reader.onload = (ev) => {
-                            settings.value.logoSekolahUrl = ev.target.result;
-                            showToast("Logo Sekolah berhasil diperbarui!");
-                        };
-                        reader.readAsDataURL(file);
-                    }
-                };
-
-                const removeLogoSekolah = () => { settings.value.logoSekolahUrl = ''; };
-
-                const handleLogoPendidikanUpload = (e) => {
-                    const file = e.target.files[0];
-                    if (file) {
-                        const reader = new FileReader();
-                        reader.onload = (ev) => {
-                            settings.value.logoPendidikanUrl = ev.target.result;
-                            showToast("Logo Pendidikan berhasil diperbarui!");
-                        };
-                        reader.readAsDataURL(file);
-                    }
-                };
-
-                const removeLogoPendidikan = () => { settings.value.logoPendidikanUrl = ''; };
-
                 const saveProfile = () => {
                     currentUser.value = { ...profileForm.value };
+                    localStorage.setItem('SMAN5_USER', JSON.stringify(currentUser.value));
                     showToast("Profil guru berhasil diperbarui!");
                 };
 
+                // Settings & Logo Logic
+                const handleLogoPendidikanUpload = (e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = (evt) => {
+                        settings.value.logoPendidikanUrl = evt.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                };
+
+                const removeLogoPendidikan = () => {
+                    settings.value.logoPendidikanUrl = '';
+                };
+
+                const handleLogoSekolahUpload = (e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = (evt) => {
+                        settings.value.logoSekolahUrl = evt.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                };
+
+                const removeLogoSekolah = () => {
+                    settings.value.logoSekolahUrl = '';
+                };
+
                 const saveSettings = () => {
-                    showToast("Pengaturan aplikasi berhasil disimpan!");
+                    localStorage.setItem('SMAN5_SETTINGS', JSON.stringify(settings.value));
+                    showToast("Pengaturan sekolah berhasil disimpan!");
+                };
+
+                const printReport = () => {
+                    window.print();
                 };
 
                 const exportData = () => {
                     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(journals.value, null, 2));
-                    const downloadAnchor = document.createElement('a');
-                    downloadAnchor.setAttribute("href", dataStr);
-                    downloadAnchor.setAttribute("download", `Jurnal_Guru_${currentUser.value.nip}_${new Date().toISOString().substring(0,10)}.json`);
-                    document.body.appendChild(downloadAnchor);
-                    downloadAnchor.click();
-                    downloadAnchor.remove();
-                    showToast("Berkas cadangan berhasil diunduh!");
+                    const dlAnchorElem = document.createElement('a');
+                    dlAnchorElem.setAttribute("href", dataStr);
+                    dlAnchorElem.setAttribute("download", `Backup_Jurnal_SMAN05_${new Date().toISOString().substring(0,10)}.json`);
+                    dlAnchorElem.click();
+                    showToast("Cadangan berkas JSON berhasil diunduh.");
                 };
 
-                const openDetailModal = (journal) => {
-                    selectedJournalModal.value = journal;
-                };
-
-                const filteredJournals = computed(() => {
-                    return journals.value.filter(j => {
-                        const matchesQuery = !searchQuery.value || 
-                            j.uraian.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-                            j.lokasi.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-                            j.submenu.toLowerCase().includes(searchQuery.value.toLowerCase());
-                        const matchesIndikator = !filterIndikator.value || j.indikator === filterIndikator.value;
-                        return matchesQuery && matchesIndikator;
-                    });
-                });
-
-                const recentJournals = computed(() => journals.value.slice(0, 5));
-                const totalTatapMuka = computed(() => journals.value.filter(j => j.submenu === 'Pelaksanaan Tatap Muka Kelas').length);
-                const totalBuktiDukung = computed(() => journals.value.filter(j => j.fileName || j.driveUrl).length);
-
-                const indicatorCounts = computed(() => {
-                    const counts = {};
-                    Object.keys(categoryMap).forEach(cat => counts[cat] = 0);
-                    journals.value.forEach(j => {
-                        if (counts[j.indikator] !== undefined) counts[j.indikator]++;
-                        else counts[j.indikator] = 1;
-                    });
-                    return counts;
-                });
-
-                const activeIndicatorsCount = computed(() => Object.values(indicatorCounts.value).filter(val => val > 0).length);
-
-                const calculatePercentage = (count) => {
-                    if (journals.value.length === 0) return 0;
-                    return Math.round((count / journals.value.length) * 100);
-                };
-
-                const formatDate = (dateStr) => {
-                    if (!dateStr) return '';
-                    const options = { day: 'numeric', month: 'long', year: 'numeric' };
-                    return new Date(dateStr).toLocaleDateString('id-ID', options);
-                };
-
-                const todayFormatted = computed(() => new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }));
-                const currentMonthYear = computed(() => new Date().toLocaleDateString('id-ID', { month: 'long', year: 'numeric' }));
-
-                const printReport = () => {
-                    try {
-                        window.print();
-                    } catch (e) {
-                        showToast("Gunakan kombinasi tombol Ctrl + P untuk mencetak.");
+                onMounted(() => {
+                    if (gasAppUrl.value) {
+                        fetchDataFromGas();
                     }
-                };
+                });
 
                 return {
-                    isLoggedIn,
-                    currentUser,
-                    profileForm,
-                    settings,
-                    loginForm,
-                    loginError,
-                    toastMessage,
-                    isLoading,
                     currentTab,
                     isSidebarHidden,
+                    toastMessage,
+                    isLoading,
+                    selectedJournalModal,
+                    showGasModal,
+                    searchQuery,
+                    filterIndikator,
+                    filterKelas,
                     gasAppUrl,
                     tempGasUrl,
-                    showGasModal,
+                    settings,
+                    kelasList,
+                    classForm,
+                    editingClassId,
+                    isLoggedIn,
+                    loginForm,
+                    loginError,
+                    currentUser,
+                    profileForm,
+                    categoryMap,
+                    formData,
+                    journals,
                     gasScriptCode,
+                    todayFormatted,
+                    currentMonthYear,
+                    currentSubmenus,
+                    totalTatapMuka,
+                    activeIndicatorsCount,
+                    totalBuktiDukung,
+                    indicatorCounts,
+                    recentJournals,
+                    filteredJournals,
+                    showToast,
                     selectTab,
                     toggleSidebar,
                     openGasModal,
                     saveGasUrl,
                     copyGasScript,
-                    fetchDataFromGas,
-                    categoryMap,
-                    formData,
-                    currentSubmenus,
-                    journals,
-                    searchQuery,
-                    filterIndikator,
-                    filteredJournals,
-                    recentJournals,
-                    totalTatapMuka,
-                    totalBuktiDukung,
-                    indicatorCounts,
-                    activeIndicatorsCount,
                     calculatePercentage,
-                    selectedJournalModal,
+                    formatDate,
                     onIndikatorChange,
-                    quickLogin,
-                    handleLogin,
-                    logout,
                     handleFileUpload,
+                    removeFile,
+                    resetForm,
+                    saveJournal,
+                    deleteJournal,
+                    fetchDataFromGas,
+                    openDetailModal,
+                    saveClassItem,
+                    editClass,
+                    cancelEditClass,
+                    deleteClass,
+                    resetClasses,
+                    handleLogin,
+                    quickLogin,
+                    logout,
                     handleAvatarUpload,
                     removeAvatar,
-                    handleLogoSekolahUpload,
-                    removeLogoSekolah,
+                    saveProfile,
                     handleLogoPendidikanUpload,
                     removeLogoPendidikan,
-                    removeFile,
-                    saveJournal,
-                    resetForm,
-                    saveProfile,
+                    handleLogoSekolahUpload,
+                    removeLogoSekolah,
                     saveSettings,
-                    exportData,
-                    deleteJournal,
-                    openDetailModal,
-                    formatDate,
-                    todayFormatted,
-                    currentMonthYear,
-                    printReport
+                    printReport,
+                    exportData
                 };
             }
         }).mount('#app');
