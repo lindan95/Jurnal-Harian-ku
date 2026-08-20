@@ -1,0 +1,1946 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jurnal Harian Guru - SMAN 05 Bombana</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Vue 3 CDN -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0284c7',
+                            600: '#0369a1',
+                            700: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                        },
+                        emerald: {
+                            50: '#ecfdf5',
+                            100: '#d1fae5',
+                            500: '#10b981',
+                            600: '#059669',
+                            700: '#047857',
+                            800: '#065f46',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        @media print {
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+            body { background: white !important; color: black !important; padding: 0 !important; margin: 0 !important; }
+            main { padding: 0 !important; margin: 0 !important; max-width: 100% !important; }
+            .print-container { width: 100% !important; max-width: 100% !important; padding: 0 !important; border: none !important; box-shadow: none !important; }
+            @page { size: A4 landscape; margin: 10mm; }
+        }
+        .print-only { display: none; }
+        
+        /* Custom scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 antialiased min-h-screen">
+    <div id="app" class="min-h-screen flex flex-col">
+        
+        <!-- HEADER TOP BAR -->
+        <header class="bg-slate-900 text-white shadow-md border-b border-slate-800 no-print">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex justify-between items-center">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-emerald-600 rounded-xl flex items-center justify-center font-bold text-lg text-white shadow-md border border-emerald-400/30">
+                        <i class="fa-solid fa-book-bookmark"></i>
+                    </div>
+                    <div>
+                        <h1 class="font-bold text-base sm:text-lg tracking-wide uppercase text-emerald-400 leading-tight">Jurnal Harian Guru</h1>
+                        <p class="text-[11px] text-slate-300 font-medium tracking-wider">SMA NEGERI 05 BOMBANA</p>
+                    </div>
+                </div>
+
+                <!-- Database Connection Status & User Profile -->
+                <div class="flex items-center gap-3">
+                    <!-- GAS Connection Status Indicator -->
+                    <button @click="openGasModal" class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold border transition" :class="gasAppUrl ? 'bg-emerald-950/80 border-emerald-500/50 text-emerald-300 hover:bg-emerald-900' : 'bg-amber-950/80 border-amber-500/50 text-amber-300 hover:bg-amber-900'">
+                        <span class="w-2 h-2 rounded-full animate-pulse" :class="gasAppUrl ? 'bg-emerald-400' : 'bg-amber-400'"></span>
+                        <span>{{ gasAppUrl ? 'Terhubung GAS Drive' : 'Database GAS Belum Set' }}</span>
+                        <i class="fa-solid fa-gear text-[10px]"></i>
+                    </button>
+
+                    <div v-if="isLoggedIn" class="flex items-center gap-4">
+                        <div class="flex items-center gap-2 text-right hidden md:flex">
+                            <div class="w-8 h-8 rounded-full bg-emerald-600 text-white flex items-center justify-center overflow-hidden border border-emerald-400 font-bold text-xs shrink-0">
+                                <img v-if="currentUser.avatarUrl" :src="currentUser.avatarUrl" class="w-full h-full object-cover">
+                                <span v-else><i class="fa-solid fa-user"></i></span>
+                            </div>
+                            <div>
+                                <p class="text-xs font-bold text-white">{{ currentUser.nama }}</p>
+                                <p class="text-[10px] text-emerald-300">NIP: {{ currentUser.nip }}</p>
+                            </div>
+                        </div>
+                        <button @click="logout" title="Keluar dari sistem" class="bg-red-600/20 hover:bg-red-600 text-red-200 hover:text-white border border-red-500/30 px-3 py-1.5 rounded-xl text-xs font-medium transition flex items-center gap-2">
+                            <i class="fa-solid fa-right-from-bracket"></i> <span class="hidden sm:inline">Keluar</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+            <!-- Global Loading Spinner Overlay -->
+            <div v-if="isLoading" class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-50 flex items-center justify-center">
+                <div class="bg-white rounded-2xl p-6 shadow-2xl border border-slate-200 flex flex-col items-center gap-3">
+                    <div class="w-10 h-10 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
+                    <p class="text-xs font-bold text-slate-700 animate-pulse">Menghubungkan ke Google Sheets & Drive...</p>
+                </div>
+            </div>
+
+            <!-- Toast Notification -->
+            <div v-if="toastMessage" class="fixed bottom-5 right-5 z-50 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 border border-slate-700 animate-bounce">
+                <i class="fa-solid fa-circle-info text-emerald-400 text-lg"></i>
+                <span class="text-xs font-semibold">{{ toastMessage }}</span>
+            </div>
+
+            <!-- 1. LOGIN SCREEN VIEW -->
+            <div v-if="!isLoggedIn" class="max-w-md mx-auto my-8 bg-white rounded-3xl shadow-xl border border-slate-200 p-6 sm:p-8 space-y-6">
+                <div class="text-center space-y-2">
+                    <div class="w-16 h-16 bg-emerald-100 text-emerald-700 rounded-2xl flex items-center justify-center text-2xl mx-auto shadow-inner">
+                        <i class="fa-solid fa-user-lock"></i>
+                    </div>
+                    <h2 class="text-xl font-extrabold text-slate-800">Login Jurnal Guru</h2>
+                    <p class="text-xs text-slate-500">SMA Negeri 05 Bombana</p>
+                </div>
+
+                <div v-if="loginError" class="p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl flex items-center gap-2">
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                    <span>{{ loginError }}</span>
+                </div>
+
+                <form @submit.prevent="handleLogin" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Username (NIP / NIK)</label>
+                        <input v-model="loginForm.username" type="text" placeholder="Masukkan NIP / NIK Guru" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Password (Tanggal Lahir)</label>
+                        <input v-model="loginForm.password" type="password" placeholder="Format: TGL-BLN-THN (mis. 17081985)" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+                    </div>
+                    <button type="submit" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs sm:text-sm font-bold shadow-md transition">
+                        Masuk Sistem
+                    </button>
+                </form>
+
+                <!-- Demo Login Shortcut -->
+                <div class="pt-4 border-t border-slate-100">
+                    <p class="text-[11px] text-slate-400 text-center mb-2">Atau masuk cepat dengan akun demo:</p>
+                    <button @click="quickLogin('19850817 201001 1 002', '17081985', 'Drs. Ahmad Subagja, M.Pd.')" class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-user-check text-emerald-600"></i> Demo Guru ASN (Drs. Ahmad Subagja)
+                    </button>
+                </div>
+            </div>
+
+            <!-- 2. MAIN DASHBOARD WITH LEFT SIDEBAR -->
+            <div v-else class="space-y-4">
+
+                <!-- Floating Sidebar Re-open Banner -->
+                <div v-if="isSidebarHidden" class="w-full no-print bg-white px-4 py-3 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between text-xs transition-all">
+                    <div class="flex items-center gap-3 text-slate-700">
+                        <div class="w-8 h-8 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center font-bold border border-emerald-100">
+                            <i class="fa-solid fa-sidebar text-sm"></i>
+                        </div>
+                        <div>
+                            <span class="font-bold text-slate-800 block">Menu Navigasi Samping Disembunyikan</span>
+                            <p class="text-[11px] text-slate-500">Tampilan area kerja disesuaikan ke mode layar penuh.</p>
+                        </div>
+                    </div>
+                    <button @click="toggleSidebar" title="Tampilkan kembali menu navigasi bilah kiri" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold shadow-sm transition flex items-center gap-2 cursor-pointer">
+                        <i class="fa-solid fa-outdent"></i> Tampilkan Sidebar Menu
+                    </button>
+                </div>
+
+                <!-- MAIN LAYOUT WRAPPER -->
+                <div class="flex flex-col md:flex-row gap-6 items-start">
+
+                    <!-- LEFT SIDEBAR MENU -->
+                    <aside v-if="!isSidebarHidden" class="w-full md:w-64 bg-white rounded-2xl border border-slate-200 shadow-sm p-4 space-y-4 shrink-0 no-print transition-all sticky top-4">
+                        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                            <span class="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-2">
+                                <i class="fa-solid fa-compass text-emerald-600"></i> Menu Navigasi
+                            </span>
+                            <button @click="toggleSidebar" title="Sembunyikan Menu Sidebar" class="text-slate-400 hover:text-red-600 hover:bg-red-50 text-xs px-2 py-1 rounded-lg transition flex items-center gap-1 font-semibold cursor-pointer">
+                                <i class="fa-solid fa-xmark"></i> Sembunyikan
+                            </button>
+                        </div>
+
+                        <!-- Navigation Links -->
+                        <nav class="space-y-1.5">
+                            <button @click="selectTab('dashboard')" :class="currentTab === 'dashboard' ? 'bg-emerald-600 text-white shadow-md font-semibold' : 'text-slate-600 hover:bg-slate-100 font-medium'" class="w-full px-3.5 py-3 rounded-xl text-xs sm:text-sm transition flex items-center justify-start gap-3 text-left cursor-pointer">
+                                <i class="fa-solid fa-chart-pie text-base w-5 text-center"></i>
+                                Dashboard Ringkasan
+                            </button>
+                            <button @click="selectTab('profile')" :class="currentTab === 'profile' ? 'bg-emerald-600 text-white shadow-md font-semibold' : 'text-slate-600 hover:bg-slate-100 font-medium'" class="w-full px-3.5 py-3 rounded-xl text-xs sm:text-sm transition flex items-center justify-start gap-3 text-left cursor-pointer">
+                                <i class="fa-solid fa-id-card text-base w-5 text-center"></i>
+                                Profil Guru
+                            </button>
+                            <button @click="selectTab('form')" :class="currentTab === 'form' ? 'bg-emerald-600 text-white shadow-md font-semibold' : 'text-slate-600 hover:bg-slate-100 font-medium'" class="w-full px-3.5 py-3 rounded-xl text-xs sm:text-sm transition flex items-center justify-start gap-3 text-left cursor-pointer">
+                                <i class="fa-solid fa-pen-to-square text-base w-5 text-center"></i>
+                                Input Jurnal Baru
+                            </button>
+                            <button @click="selectTab('history')" :class="currentTab === 'history' ? 'bg-emerald-600 text-white shadow-md font-semibold' : 'text-slate-600 hover:bg-slate-100 font-medium'" class="w-full px-3.5 py-3 rounded-xl text-xs sm:text-sm transition flex items-center justify-between text-left cursor-pointer">
+                                <div class="flex items-center gap-3">
+                                    <i class="fa-solid fa-clock-rotate-left text-base w-5 text-center"></i>
+                                    Riwayat Jurnal
+                                </div>
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold" :class="currentTab === 'history' ? 'bg-emerald-800 text-white' : 'bg-slate-200 text-slate-700'">{{ journals.length }}</span>
+                            </button>
+                            <button @click="selectTab('recap')" :class="currentTab === 'recap' ? 'bg-emerald-600 text-white shadow-md font-semibold' : 'text-slate-600 hover:bg-slate-100 font-medium'" class="w-full px-3.5 py-3 rounded-xl text-xs sm:text-sm transition flex items-center justify-start gap-3 text-left cursor-pointer">
+                                <i class="fa-solid fa-file-invoice text-base w-5 text-center"></i>
+                                Rekapitulasi & Cetak
+                            </button>
+                            <button @click="selectTab('settings')" :class="currentTab === 'settings' ? 'bg-emerald-600 text-white shadow-md font-semibold' : 'text-slate-600 hover:bg-slate-100 font-medium'" class="w-full px-3.5 py-3 rounded-xl text-xs sm:text-sm transition flex items-center justify-start gap-3 text-left cursor-pointer">
+                                <i class="fa-solid fa-gear text-base w-5 text-center"></i>
+                                Pengaturan & GAS
+                            </button>
+                        </nav>
+
+                        <div class="pt-4 border-t border-slate-100">
+                            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs text-slate-600 space-y-1">
+                                <p class="font-bold text-slate-800 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-graduation-cap text-emerald-600"></i> SMAN 05 Bombana
+                                </p>
+                                <p class="text-[10px] text-slate-500">Database: {{ gasAppUrl ? 'Google Sheets & Drive' : 'Local Dynamic Cache' }}</p>
+                            </div>
+                        </div>
+                    </aside>
+
+                    <!-- WORKSPACE MAIN CONTENT -->
+                    <div class="w-full min-w-0 flex-grow">
+
+                        <!-- TAB 0: DASHBOARD RINGKASAN -->
+                        <div v-if="currentTab === 'dashboard'" class="space-y-6">
+                            
+                            <!-- Welcome Banner Card -->
+                            <div class="p-6 bg-gradient-to-r from-slate-900 via-slate-800 to-emerald-950 rounded-3xl text-white shadow-md relative overflow-hidden border border-slate-800">
+                                <div class="absolute -right-10 -bottom-10 opacity-10 text-emerald-300 pointer-events-none">
+                                    <i class="fa-solid fa-graduation-cap text-[220px]"></i>
+                                </div>
+                                <div class="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                                    <div class="space-y-1.5">
+                                        <span class="px-3 py-1 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[11px] font-bold rounded-full inline-flex items-center gap-1.5">
+                                            <i class="fa-solid fa-sparkles"></i> Selamat Datang
+                                        </span>
+                                        <h2 class="text-xl sm:text-2xl font-black text-white leading-tight">
+                                            {{ currentUser.nama }}
+                                        </h2>
+                                        <p class="text-xs text-slate-300 max-w-xl">
+                                            NIP: {{ currentUser.nip }} &bull; {{ currentUser.jabatan }} ({{ currentUser.mapelUtama }})
+                                        </p>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <button @click="selectTab('form')" class="px-5 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl text-xs font-bold shadow-lg transition flex items-center gap-2.5 shrink-0">
+                                            <i class="fa-solid fa-plus-circle text-base"></i> Input Jurnal Baru
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- GAS Database Alert Banner (if not connected) -->
+                            <div v-if="!gasAppUrl" class="p-4 bg-amber-50 border border-amber-200 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-amber-900">
+                                <div class="flex items-center gap-3">
+                                    <i class="fa-solid fa-database text-amber-600 text-xl shrink-0"></i>
+                                    <div>
+                                        <p class="font-bold">Database Google Apps Script Belum Terhubung</p>
+                                        <p class="text-[11px] text-amber-700">Aplikasi saat ini berjalan dalam mode simpan lokal. Hubungkan Web App GAS agar data tersimpan otomatis di Google Sheets & Drive.</p>
+                                    </div>
+                                </div>
+                                <button @click="openGasModal" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold transition shrink-0 whitespace-nowrap">
+                                    Atur URL GAS Sekarang
+                                </button>
+                            </div>
+
+                            <!-- Stat Summary Cards -->
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                                <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+                                    <div class="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-xl shrink-0">
+                                        <i class="fa-solid fa-book-open"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Total Jurnal</p>
+                                        <h3 class="text-xl font-extrabold text-slate-800">{{ journals.length }} <span class="text-xs font-normal text-slate-500">entri</span></h3>
+                                    </div>
+                                </div>
+
+                                <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+                                    <div class="w-12 h-12 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center text-xl shrink-0">
+                                        <i class="fa-solid fa-chalkboard-user"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Tatap Muka Kelas</p>
+                                        <h3 class="text-xl font-extrabold text-slate-800">{{ totalTatapMuka }} <span class="text-xs font-normal text-slate-500">sesi</span></h3>
+                                    </div>
+                                </div>
+
+                                <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+                                    <div class="w-12 h-12 rounded-2xl bg-blue-100 text-blue-700 flex items-center justify-center text-xl shrink-0">
+                                        <i class="fa-solid fa-list-check"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Indikator Aktif</p>
+                                        <h3 class="text-xl font-extrabold text-slate-800">{{ activeIndicatorsCount }} <span class="text-xs font-normal text-slate-500">kategori</span></h3>
+                                    </div>
+                                </div>
+
+                                <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+                                    <div class="w-12 h-12 rounded-2xl bg-purple-100 text-purple-700 flex items-center justify-center text-xl shrink-0">
+                                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Bukti Drive</p>
+                                        <h3 class="text-xl font-extrabold text-slate-800">{{ totalBuktiDukung }} <span class="text-xs font-normal text-slate-500">berkas</span></h3>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Visual Indicator Distribution Breakdown -->
+                            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-4">
+                                    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                                        <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                                            <i class="fa-solid fa-chart-bar text-emerald-600"></i> Distribusi Indikator Kegiatan
+                                        </h3>
+                                        <span class="text-[11px] text-slate-400 font-medium">Rekapitulasi Jurnal</span>
+                                    </div>
+
+                                    <div class="space-y-3.5">
+                                        <div v-for="(count, category) in indicatorCounts" :key="category" class="space-y-1">
+                                            <div class="flex justify-between text-xs font-medium">
+                                                <span class="text-slate-700 font-semibold">{{ category }}</span>
+                                                <span class="text-slate-500 font-bold">{{ count }} entri ({{ calculatePercentage(count) }}%)</span>
+                                            </div>
+                                            <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+                                                <div class="bg-emerald-600 h-full rounded-full transition-all duration-500" :style="{ width: calculatePercentage(count) + '%' }"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Quick Actions & Shortcuts Card -->
+                                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-4">
+                                    <h3 class="text-sm font-bold text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2">
+                                        <i class="fa-solid fa-bolt text-amber-500"></i> Akses Cepat & Backend
+                                    </h3>
+
+                                    <div class="space-y-2.5">
+                                        <button @click="selectTab('form')" class="w-full p-3 bg-slate-50 hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 rounded-xl text-xs font-semibold text-slate-700 hover:text-emerald-800 transition flex items-center justify-between group">
+                                            <div class="flex items-center gap-2.5">
+                                                <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">
+                                                    <i class="fa-solid fa-pen-to-square"></i>
+                                                </div>
+                                                <span>Input Jurnal Hari Ini</span>
+                                            </div>
+                                            <i class="fa-solid fa-chevron-right text-slate-400 group-hover:translate-x-1 transition-transform"></i>
+                                        </button>
+
+                                        <button @click="openGasModal" class="w-full p-3 bg-slate-50 hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 rounded-xl text-xs font-semibold text-slate-700 hover:text-emerald-800 transition flex items-center justify-between group">
+                                            <div class="flex items-center gap-2.5">
+                                                <div class="w-8 h-8 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center font-bold">
+                                                    <i class="fa-solid fa-database"></i>
+                                                </div>
+                                                <span>Setup Database GAS & Drive</span>
+                                            </div>
+                                            <i class="fa-solid fa-chevron-right text-slate-400 group-hover:translate-x-1 transition-transform"></i>
+                                        </button>
+
+                                        <button @click="fetchDataFromGas" class="w-full p-3 bg-slate-50 hover:bg-blue-50 border border-slate-200 hover:border-blue-300 rounded-xl text-xs font-semibold text-slate-700 hover:text-blue-800 transition flex items-center justify-between group">
+                                            <div class="flex items-center gap-2.5">
+                                                <div class="w-8 h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-bold">
+                                                    <i class="fa-solid fa-rotate"></i>
+                                                </div>
+                                                <span>Sinkronkan Data dari Sheets</span>
+                                            </div>
+                                            <i class="fa-solid fa-chevron-right text-slate-400 group-hover:translate-x-1 transition-transform"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Recent Activity Table -->
+                            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-4">
+                                <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                                    <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                                        <i class="fa-solid fa-history text-emerald-600"></i> Jurnal Terbaru Dikirim
+                                    </h3>
+                                    <button @click="selectTab('history')" class="text-xs font-semibold text-emerald-600 hover:text-emerald-700 flex items-center gap-1">
+                                        Lihat Semua <i class="fa-solid fa-arrow-right"></i>
+                                    </button>
+                                </div>
+
+                                <div class="overflow-x-auto rounded-xl border border-slate-200">
+                                    <table class="w-full text-left text-xs text-slate-600">
+                                        <thead class="bg-slate-100 text-slate-700 uppercase font-bold text-[10px] border-b border-slate-200">
+                                            <tr>
+                                                <th class="p-3">Tanggal & Waktu</th>
+                                                <th class="p-3">Indikator & Kegiatan</th>
+                                                <th class="p-3">Uraian Kegiatan</th>
+                                                <th class="p-3 text-center">Aksi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-slate-100">
+                                            <tr v-if="recentJournals.length === 0">
+                                                <td colspan="4" class="p-6 text-center text-slate-400">
+                                                    Belum ada entri jurnal terbaru.
+                                                </td>
+                                            </tr>
+                                            <tr v-for="j in recentJournals" :key="j.id" class="hover:bg-slate-50 transition">
+                                                <td class="p-3 whitespace-nowrap">
+                                                    <div class="font-bold text-slate-800">{{ formatDate(j.tanggal) }}</div>
+                                                    <div class="text-[10px] text-slate-400">{{ j.jam }}</div>
+                                                </td>
+                                                <td class="p-3">
+                                                    <span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-semibold text-[10px] inline-block mb-1">
+                                                        {{ j.indikator }}
+                                                    </span>
+                                                    <div class="font-semibold text-slate-700">{{ j.submenu }}</div>
+                                                </td>
+                                                <td class="p-3 max-w-xs">
+                                                    <p class="line-clamp-2 text-slate-700">{{ j.uraian }}</p>
+                                                </td>
+                                                <td class="p-3 text-center whitespace-nowrap">
+                                                    <button @click="openDetailModal(j)" title="Lihat Detail" class="p-1.5 bg-slate-100 hover:bg-emerald-100 text-slate-600 hover:text-emerald-700 rounded-lg transition">
+                                                        <i class="fa-solid fa-eye"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <!-- TAB 1: FORM INPUT JURNAL -->
+                        <div v-if="currentTab === 'form'" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6 space-y-5">
+                            
+                            <!-- Card Profil Guru Ringkas -->
+                            <div class="p-3.5 bg-slate-900 text-white rounded-xl shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3 border border-slate-800">
+                                <div class="flex items-center gap-3 w-full sm:w-auto">
+                                    <div class="w-10 h-10 bg-emerald-600 text-white rounded-lg flex items-center justify-center font-bold text-lg shrink-0">
+                                        <i class="fa-solid fa-user-tie"></i>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <div class="flex items-center gap-2">
+                                            <h3 class="font-bold text-xs sm:text-sm text-emerald-400 truncate">{{ currentUser.nama }}</h3>
+                                            <span class="text-[9px] bg-emerald-900/80 text-emerald-300 px-2 py-0.5 rounded-full border border-emerald-700 shrink-0 font-medium">ASN Aktif</span>
+                                        </div>
+                                        <p class="text-[11px] text-slate-300">NIP: {{ currentUser.nip }} &bull; {{ currentUser.jabatan }} ({{ currentUser.mapelUtama }})</p>
+                                    </div>
+                                </div>
+                                <button type="button" @click="selectTab('profile')" class="text-[11px] bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white px-3 py-1.5 rounded-lg border border-slate-700 transition flex items-center gap-1.5 shrink-0">
+                                    <i class="fa-solid fa-user-gear text-emerald-400"></i> Edit Profil
+                                </button>
+                            </div>
+
+                            <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-2 border-b border-slate-100 pb-4">
+                                <div>
+                                    <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                                        <i class="fa-solid fa-pen-to-square text-emerald-600"></i> Form Input Jurnal Harian
+                                    </h2>
+                                    <p class="text-xs text-slate-500">Isi rincian kegiatan harian Anda. Berkas bukti akan diunggah otomatis ke Google Drive.</p>
+                                </div>
+                                <span class="text-xs font-semibold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-lg border border-emerald-200 self-start sm:self-auto">
+                                    <i class="fa-solid fa-calendar-day"></i> {{ todayFormatted }}
+                                </span>
+                            </div>
+
+                            <form @submit.prevent="saveJournal" class="space-y-5">
+                                
+                                <!-- 1. Indikator Kegiatan & Submenu Dropdown -->
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1.5">Indikator Kegiatan <span class="text-red-500">*</span></label>
+                                        <select v-model="formData.indikator" @change="onIndikatorChange" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-emerald-500 focus:bg-white outline-none transition font-medium">
+                                            <option value="" disabled>-- Pilih Indikator Kegiatan --</option>
+                                            <option v-for="(subList, category) in categoryMap" :key="category" :value="category">
+                                                {{ category }}
+                                            </option>
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1.5">Kegiatan <span class="text-red-500">*</span></label>
+                                        <select v-model="formData.submenu" :disabled="!formData.indikator" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-emerald-500 focus:bg-white outline-none transition font-medium disabled:bg-slate-100 disabled:text-slate-400">
+                                            <option value="" disabled>-- Pilih Kegiatan --</option>
+                                            <option v-for="sub in currentSubmenus" :key="sub" :value="sub">
+                                                {{ sub }}
+                                            </option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <!-- Conditional Fields: Kelas & Mapel -->
+                                <div v-if="formData.submenu === 'Pelaksanaan Tatap Muka Kelas'" class="p-4 bg-amber-50/70 border border-amber-200 rounded-xl space-y-3 transition-all">
+                                    <div class="flex items-center gap-2 text-amber-800 font-bold text-xs uppercase tracking-wider">
+                                        <i class="fa-solid fa-chalkboard-user"></i> Detail Pembelajaran Tatap Muka
+                                    </div>
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div>
+                                            <label class="block text-xs font-semibold text-slate-700 mb-1">Kelas <span class="text-red-500">*</span></label>
+                                            <select v-model="formData.kelas" required class="w-full bg-white border border-amber-300 rounded-xl px-3 py-2 text-xs sm:text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+                                                <option value="" disabled>-- Pilih Kelas --</option>
+                                                <option value="X IPA 1">X IPA 1</option>
+                                                <option value="X IPA 2">X IPA 2</option>
+                                                <option value="XI IPA 1">XI IPA 1</option>
+                                                <option value="XI IPS 1">XI IPS 1</option>
+                                                <option value="XII IPA 1">XII IPA 1</option>
+                                                <option value="XII IPS 1">XII IPS 1</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-semibold text-slate-700 mb-1">Mata Pelajaran (Mapel) <span class="text-red-500">*</span></label>
+                                            <input v-model="formData.mapel" type="text" placeholder="Contoh: Matematika Wajib" required class="w-full bg-white border border-amber-300 rounded-xl px-3 py-2 text-xs sm:text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Waktu & Lokasi -->
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1.5">Tanggal <span class="text-red-500">*</span></label>
+                                        <input v-model="formData.tanggal" type="date" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1.5">Jam / Rentang Waktu <span class="text-red-500">*</span></label>
+                                        <input v-model="formData.jam" type="text" placeholder="Contoh: 07:30 - 09:00 WITA" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1.5">Lokasi Kegiatan <span class="text-red-500">*</span></label>
+                                        <input v-model="formData.lokasi" type="text" placeholder="Contoh: Ruang Kelas XII IPA 1" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+                                    </div>
+                                </div>
+
+                                <!-- Text Areas -->
+                                <div class="space-y-4">
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Uraian Kegiatan <span class="text-red-500">*</span></label>
+                                        <textarea v-model="formData.uraian" rows="3" required placeholder="Jelaskan aktivitas atau agenda kegiatan..." class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-xs sm:text-sm focus:ring-2 focus:ring-emerald-500 outline-none transition"></textarea>
+                                    </div>
+
+                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        <div>
+                                            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Catatan / Hasil Kegiatan <span class="text-red-500">*</span></label>
+                                            <textarea v-model="formData.hasil" rows="3" required placeholder="Hasil akhir atau capaian kegiatan..." class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-xs sm:text-sm focus:ring-2 focus:ring-emerald-500 outline-none transition"></textarea>
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Refleksi Mandiri <span class="text-red-500">*</span></label>
+                                            <textarea v-model="formData.refleksi" rows="3" required placeholder="Evaluasi mandiri..." class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-xs sm:text-sm focus:ring-2 focus:ring-emerald-500 outline-none transition"></textarea>
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Pembinaan / Rekomendasi Mandiri <span class="text-red-500">*</span></label>
+                                            <textarea v-model="formData.pembinaan" rows="3" required placeholder="Tindak lanjut atau solusi..." class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-xs sm:text-sm focus:ring-2 focus:ring-emerald-500 outline-none transition"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 4. Bukti Dukung Google Drive Upload -->
+                                <div class="p-4 bg-emerald-50/50 border-2 border-dashed border-emerald-300 rounded-2xl space-y-3">
+                                    <div class="flex items-center justify-between">
+                                        <label class="block text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                                            <i class="fa-solid fa-cloud-arrow-up text-emerald-600"></i> Unggah Bukti Dukung ke Google Drive
+                                        </label>
+                                        <span class="text-[10px] text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded font-bold">Otomatis Terhubung Drive</span>
+                                    </div>
+                                    
+                                    <div class="flex flex-wrap items-center gap-3">
+                                        <!-- Upload Gambar -->
+                                        <label class="cursor-pointer bg-white hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 border border-slate-300 hover:border-emerald-400 px-4 py-2.5 rounded-xl text-xs font-semibold shadow-sm transition flex items-center gap-2">
+                                            <i class="fa-solid fa-image text-emerald-600"></i> Unggah Gambar (JPG, PNG)
+                                            <input type="file" @change="handleFileUpload" class="hidden" accept="image/*">
+                                        </label>
+
+                                        <!-- Upload Dokumen -->
+                                        <label class="cursor-pointer bg-white hover:bg-blue-50 text-slate-700 hover:text-blue-700 border border-slate-300 hover:border-blue-400 px-4 py-2.5 rounded-xl text-xs font-semibold shadow-sm transition flex items-center gap-2">
+                                            <i class="fa-solid fa-file-pdf text-blue-600"></i> Unggah Dokumen (PDF, DOC)
+                                            <input type="file" @change="handleFileUpload" class="hidden" accept=".pdf,.doc,.docx">
+                                        </label>
+                                        
+                                        <div v-if="formData.fileName" class="flex items-center gap-2 bg-emerald-100 border border-emerald-300 text-emerald-900 px-3 py-1.5 rounded-xl text-xs font-medium">
+                                            <i class="fa-solid" :class="formData.filePreview ? 'fa-image text-emerald-600' : 'fa-file-lines text-blue-600'"></i>
+                                            <span class="max-w-[200px] truncate">{{ formData.fileName }}</span>
+                                            <button type="button" @click="removeFile" class="text-red-600 hover:text-red-800 ml-1 font-bold">&times;</button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Action Buttons -->
+                                <div class="flex justify-end gap-3 pt-2">
+                                    <button type="button" @click="resetForm" class="px-4 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl text-xs font-semibold transition">
+                                        Reset Form
+                                    </button>
+                                    <button type="submit" class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold shadow-md transition flex items-center gap-2">
+                                        <i class="fa-solid fa-cloud-arrow-up"></i> Simpan ke Google Sheets & Drive
+                                    </button>
+                                </div>
+
+                            </form>
+                        </div>
+
+                        <!-- TAB 2: RIWAYAT JURNAL -->
+                        <div v-if="currentTab === 'history'" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6 space-y-4">
+                            
+                            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-100 pb-4">
+                                <div>
+                                    <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                                        <i class="fa-solid fa-clock-rotate-left text-emerald-600"></i> Riwayat Jurnal Harian
+                                    </h2>
+                                    <p class="text-xs text-slate-500">Daftar rekaman jurnal harian yang tersimpan di Google Sheets.</p>
+                                </div>
+                                <button @click="fetchDataFromGas" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold border transition flex items-center gap-1.5">
+                                    <i class="fa-solid fa-rotate text-emerald-600"></i> Refresh Data
+                                </button>
+                            </div>
+
+                            <!-- Filters & Search -->
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pb-2">
+                                <div class="relative">
+                                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400 text-xs">
+                                        <i class="fa-solid fa-magnifying-glass"></i>
+                                    </span>
+                                    <input v-model="searchQuery" type="text" placeholder="Cari berdasarkan uraian, lokasi, kegiatan..." class="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-emerald-500">
+                                </div>
+                                <div>
+                                    <select v-model="filterIndikator" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-emerald-500">
+                                        <option value="">Semua Indikator Kegiatan</option>
+                                        <option v-for="(subList, category) in categoryMap" :key="category" :value="category">{{ category }}</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Table -->
+                            <div class="overflow-x-auto rounded-xl border border-slate-200">
+                                <table class="w-full text-left text-xs text-slate-600">
+                                    <thead class="bg-slate-100 text-slate-700 uppercase font-bold text-[10px] border-b border-slate-200">
+                                        <tr>
+                                            <th class="p-3 w-12 text-center">No</th>
+                                            <th class="p-3">Tanggal & Waktu</th>
+                                            <th class="p-3">Indikator & Kegiatan</th>
+                                            <th class="p-3">Uraian Kegiatan</th>
+                                            <th class="p-3 text-center">Bukti Drive</th>
+                                            <th class="p-3 text-center w-24">Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-slate-100">
+                                        <tr v-if="filteredJournals.length === 0">
+                                            <td colspan="6" class="p-8 text-center text-slate-400">
+                                                <i class="fa-regular fa-folder-open text-3xl mb-2 block"></i>
+                                                Belum ada catatan jurnal harian yang tersimpan.
+                                            </td>
+                                        </tr>
+                                        <tr v-for="(j, index) in filteredJournals" :key="j.id" class="hover:bg-slate-50/80 transition">
+                                            <td class="p-3 text-center font-bold text-slate-400">{{ index + 1 }}</td>
+                                            <td class="p-3 whitespace-nowrap">
+                                                <div class="font-bold text-slate-800">{{ formatDate(j.tanggal) }}</div>
+                                                <div class="text-[10px] text-slate-400">{{ j.jam }}</div>
+                                            </td>
+                                            <td class="p-3">
+                                                <span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-semibold text-[10px] inline-block mb-1">
+                                                    {{ j.indikator }}
+                                                </span>
+                                                <div class="font-semibold text-slate-700">{{ j.submenu }}</div>
+                                                <div v-if="j.kelas" class="text-[10px] text-amber-700 font-medium">Kelas: {{ j.kelas }} ({{ j.mapel }})</div>
+                                            </td>
+                                            <td class="p-3 max-w-xs">
+                                                <p class="line-clamp-2 text-slate-700">{{ j.uraian }}</p>
+                                            </td>
+                                            <td class="p-3 text-center whitespace-nowrap">
+                                                <a v-if="j.driveUrl" :href="j.driveUrl" target="_blank" class="inline-flex items-center gap-1 text-[10px] bg-emerald-50 text-emerald-700 hover:bg-emerald-100 px-2 py-1 rounded-md border border-emerald-300 transition">
+                                                    <i class="fa-solid fa-arrow-up-right-from-square"></i> Buka Drive
+                                                </a>
+                                                <span v-else-if="j.fileName" class="text-slate-500 text-[10px]">{{ j.fileName }}</span>
+                                                <span v-else class="text-slate-300 text-[10px]">-</span>
+                                            </td>
+                                            <td class="p-3 text-center whitespace-nowrap">
+                                                <div class="flex items-center justify-center gap-1.5">
+                                                    <button @click="openDetailModal(j)" title="Lihat Detail" class="p-1.5 bg-slate-100 hover:bg-emerald-100 text-slate-600 hover:text-emerald-700 rounded-lg transition">
+                                                        <i class="fa-solid fa-eye"></i>
+                                                    </button>
+                                                    <button @click="deleteJournal(j.id)" title="Hapus Jurnal" class="p-1.5 bg-slate-100 hover:bg-red-100 text-slate-600 hover:text-red-600 rounded-lg transition">
+                                                        <i class="fa-solid fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                        </div>
+
+                        <!-- TAB 3: REKAPITULASI & CETAK -->
+                        <div v-if="currentTab === 'recap'" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6 space-y-6">
+                            
+                            <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-3 border-b border-slate-100 pb-4 no-print">
+                                <div>
+                                    <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                                        <i class="fa-solid fa-file-invoice text-emerald-600"></i> Rekapitulasi & Cetak Jurnal
+                                    </h2>
+                                    <p class="text-xs text-slate-500">Pratinjau laporan resmi jurnal harian guru untuk tanda tangan dan verifikasi.</p>
+                                </div>
+                                <button type="button" @click="printReport" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold shadow-sm transition flex items-center gap-2 cursor-pointer active:scale-95">
+                                    <i class="fa-solid fa-print"></i> Cetak Dokumen / Simpan PDF
+                                </button>
+                            </div>
+
+                            <!-- Formal Print Document Header -->
+                            <div class="border border-slate-300 rounded-xl p-6 bg-white shadow-xs print-container">
+                                
+                                <!-- Kop Surat Sekolah -->
+                                <div class="border-b-2 border-slate-900 pb-3 mb-4 flex items-center justify-between gap-4">
+                                    <div class="w-16 h-16 flex items-center justify-center shrink-0">
+                                        <img v-if="settings.logoPendidikanUrl" :src="settings.logoPendidikanUrl" class="max-h-full max-w-full object-contain" alt="Logo Pendidikan">
+                                        <div v-else class="w-14 h-14 bg-slate-100 border border-dashed border-slate-300 rounded-lg flex items-center justify-center text-slate-400 text-[10px] text-center p-1">Logo Pendidikan</div>
+                                    </div>
+                                    <div class="text-center space-y-0.5 flex-grow">
+                                        <h3 class="font-extrabold text-sm sm:text-base tracking-wider uppercase text-slate-900">PEMERINTAH PROVINSI SULAWESI TENGGARA</h3>
+                                        <h4 class="font-bold text-xs sm:text-sm tracking-wide uppercase text-slate-800">DINAS PENDIDIKAN DAN KEBUDAYAAN</h4>
+                                        <h2 class="font-black text-base sm:text-lg tracking-wide uppercase text-emerald-900">SMA NEGERI 05 BOMBANA</h2>
+                                        <p class="text-[10px] text-slate-600 italic">Alamat : Jl. Pendidikan No. 3 Dongkala E-mail : --- Kode pos : 93783</p>
+                                    </div>
+                                    <div class="w-16 h-16 flex items-center justify-center shrink-0">
+                                        <img v-if="settings.logoSekolahUrl" :src="settings.logoSekolahUrl" class="max-h-full max-w-full object-contain" alt="Logo Sekolah">
+                                        <div v-else class="w-14 h-14 bg-slate-100 border border-dashed border-slate-300 rounded-lg flex items-center justify-center text-slate-400 text-[10px] text-center p-1">Logo Sekolah</div>
+                                    </div>
+                                </div>
+
+                                <div class="text-center my-4">
+                                    <h3 class="font-bold text-sm sm:text-base uppercase underline text-slate-800">LAPORAN JURNAL HARIAN GURU ASN</h3>
+                                    <p class="text-xs text-slate-600">Periode Pelaksanaan: {{ currentMonthYear }} | Semester {{ settings.semester }} TA {{ settings.tahunAjaran }}</p>
+                                </div>
+
+                                <!-- User Info Header Box -->
+                                <div class="grid grid-cols-2 gap-2 text-xs mb-4 bg-slate-50 p-3 rounded-lg border border-slate-200">
+                                    <div><span class="font-semibold text-slate-600">Nama Guru:</span> <span class="font-bold">{{ currentUser.nama }}</span></div>
+                                    <div><span class="font-semibold text-slate-600">NIP/NIK:</span> {{ currentUser.nip }}</div>
+                                    <div><span class="font-semibold text-slate-600">Pangkat/Gol.:</span> {{ currentUser.pangkat }}</div>
+                                    <div><span class="font-semibold text-slate-600">Jabatan/Mapel:</span> {{ currentUser.jabatan }} / {{ currentUser.mapelUtama }}</div>
+                                </div>
+
+                                <!-- Formal Report Table -->
+                                <div class="overflow-x-auto">
+                                    <table class="w-full text-left text-[11px] border-collapse border border-slate-400">
+                                        <thead class="bg-slate-200 text-slate-800 font-bold uppercase text-[9px] text-center">
+                                            <tr>
+                                                <th class="border border-slate-400 p-2 w-8">No</th>
+                                                <th class="border border-slate-400 p-2 w-24">Tanggal / Waktu</th>
+                                                <th class="border border-slate-400 p-2 w-36">Indikator & Kegiatan</th>
+                                                <th class="border border-slate-400 p-2">Uraian Kegiatan</th>
+                                                <th class="border border-slate-400 p-2">Hasil / Catatan</th>
+                                                <th class="border border-slate-400 p-2">Refleksi Mandiri</th>
+                                                <th class="border border-slate-400 p-2">Pembinaan / Rekomendasi</th>
+                                                <th class="border border-slate-400 p-2 w-20">Bukti Drive</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr v-if="journals.length === 0">
+                                                <td colspan="8" class="border border-slate-400 p-4 text-center text-slate-400 italic">
+                                                    Tidak ada data jurnal untuk periode ini.
+                                                </td>
+                                            </tr>
+                                            <tr v-for="(item, idx) in journals" :key="item.id">
+                                                <td class="border border-slate-400 p-2 text-center font-bold">{{ idx + 1 }}</td>
+                                                <td class="border border-slate-400 p-2">
+                                                    <div class="font-semibold">{{ formatDate(item.tanggal) }}</div>
+                                                    <div class="text-[9px] text-slate-500">{{ item.jam }}</div>
+                                                    <div class="text-[9px] text-slate-500 italic">{{ item.lokasi }}</div>
+                                                </td>
+                                                <td class="border border-slate-400 p-2">
+                                                    <div class="font-bold text-slate-800">{{ item.indikator }}</div>
+                                                    <div class="text-slate-600 font-medium">{{ item.submenu }}</div>
+                                                    <div v-if="item.kelas" class="text-[9px] font-bold text-amber-800">Kelas: {{ item.kelas }} ({{ item.mapel }})</div>
+                                                </td>
+                                                <td class="border border-slate-400 p-2">{{ item.uraian }}</td>
+                                                <td class="border border-slate-400 p-2">{{ item.hasil }}</td>
+                                                <td class="border border-slate-400 p-2">{{ item.refleksi }}</td>
+                                                <td class="border border-slate-400 p-2">{{ item.pembinaan }}</td>
+                                                <td class="border border-slate-400 p-2 text-center text-[9px]">
+                                                    <span v-if="item.driveUrl" class="text-emerald-700 font-bold">Drive Link</span>
+                                                    <span v-else-if="item.fileName">{{ item.fileName }}</span>
+                                                    <span v-else>Tidak ada</span>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <!-- Signature Footer Block -->
+                                <div class="mt-8 grid grid-cols-2 gap-8 text-xs text-slate-800 pt-4">
+                                    <div class="text-center space-y-12">
+                                        <div>
+                                            <p>Mengetahui,</p>
+                                            <p class="font-bold">Kepala SMAN 05 Bombana</p>
+                                        </div>
+                                        <div>
+                                            <p class="font-bold underline uppercase">{{ settings.namaKepsek }}</p>
+                                            <p class="text-[10px] text-slate-500">NIP. {{ settings.nipKepsek }}</p>
+                                        </div>
+                                    </div>
+                                    <div class="text-center space-y-12">
+                                        <div>
+                                            <p>Bombana, {{ todayFormatted }}</p>
+                                            <p class="font-bold">Guru Mata Pelajaran / ASN</p>
+                                        </div>
+                                        <div>
+                                            <p class="font-bold underline uppercase">{{ currentUser.nama }}</p>
+                                            <p class="text-[10px] text-slate-500">NIP. {{ currentUser.nip }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <!-- TAB 4: PROFIL GURU -->
+                        <div v-if="currentTab === 'profile'" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6 space-y-6">
+                            <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-2 border-b border-slate-100 pb-4">
+                                <div>
+                                    <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                                        <i class="fa-solid fa-id-card text-emerald-600"></i> Profil Guru / Tenaga Pendidik
+                                    </h2>
+                                    <p class="text-xs text-slate-500">Kelola informasi data diri ASN, kontak, dan spesifikasi tugas mengajar Anda.</p>
+                                </div>
+                                <span class="text-xs font-semibold text-emerald-800 bg-emerald-100 px-3 py-1 rounded-lg border border-emerald-300">
+                                    <i class="fa-solid fa-shield-halved"></i> Data ASN Aktif
+                                </span>
+                            </div>
+
+                            <form @submit.prevent="saveProfile" class="space-y-6">
+                                <div class="p-4 bg-gradient-to-r from-slate-900 to-slate-800 rounded-2xl text-white flex flex-col sm:flex-row items-center gap-5 shadow-md">
+                                    <div class="flex flex-col items-center gap-2 shrink-0">
+                                        <div class="relative group cursor-pointer">
+                                            <div class="w-20 h-20 rounded-2xl bg-emerald-600 text-white flex items-center justify-center font-bold text-3xl border-2 border-emerald-400 overflow-hidden shadow">
+                                                <img v-if="profileForm.avatarUrl" :src="profileForm.avatarUrl" class="w-full h-full object-cover">
+                                                <span v-else><i class="fa-solid fa-user-tie"></i></span>
+                                            </div>
+                                            <label class="absolute inset-0 bg-slate-900/70 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center cursor-pointer text-white text-xs font-semibold gap-1">
+                                                <i class="fa-solid fa-camera text-base text-emerald-400"></i>
+                                                <span class="text-[10px]">Ubah Foto</span>
+                                                <input type="file" @change="handleAvatarUpload" accept="image/*" class="hidden">
+                                            </label>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <label class="cursor-pointer px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-[11px] font-semibold shadow-xs transition flex items-center gap-1.5">
+                                                <i class="fa-solid fa-camera"></i> Upload Foto
+                                                <input type="file" @change="handleAvatarUpload" accept="image/*" class="hidden">
+                                            </label>
+                                            <button type="button" v-if="profileForm.avatarUrl" @click="removeAvatar" class="px-2 py-1 bg-red-600/20 hover:bg-red-600 text-red-200 hover:text-white border border-red-500/30 rounded-lg text-[11px] font-semibold transition flex items-center gap-1">
+                                                <i class="fa-solid fa-trash-can"></i> Hapus
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div class="text-center sm:text-left space-y-1">
+                                        <h3 class="font-bold text-base sm:text-lg text-emerald-400">{{ profileForm.nama || 'Nama Guru' }}</h3>
+                                        <p class="text-xs text-slate-300"><i class="fa-solid fa-id-badge text-emerald-400 mr-1"></i> NIP: {{ profileForm.nip || '-' }}</p>
+                                        <div class="flex flex-wrap gap-2 justify-center sm:justify-start pt-1">
+                                            <span class="text-[10px] bg-slate-700/80 text-slate-200 px-2.5 py-0.5 rounded-full border border-slate-600">{{ profileForm.jabatan }}</span>
+                                            <span class="text-[10px] bg-emerald-900/80 text-emerald-300 px-2.5 py-0.5 rounded-full border border-emerald-700">{{ profileForm.pangkat }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Nama Lengkap & Gelar <span class="text-red-500">*</span></label>
+                                        <input v-model="profileForm.nama" type="text" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">NIP / NIK <span class="text-red-500">*</span></label>
+                                        <input v-model="profileForm.nip" type="text" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">NUPTK</label>
+                                        <input v-model="profileForm.nuptk" type="text" placeholder="Masukkan NUPTK" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Pangkat / Golongan</label>
+                                        <select v-model="profileForm.pangkat" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+                                            <option value="Penata Muda / III-a">Penata Muda / III-a</option>
+                                            <option value="Penata Muda Tk. I / III-b">Penata Muda Tk. I / III-b</option>
+                                            <option value="Penata / III-c">Penata / III-c</option>
+                                            <option value="Penata Tk. I / III-d">Penata Tk. I / III-d</option>
+                                            <option value="Pembina / IV-a">Pembina / IV-a</option>
+                                            <option value="Pembina Tk. I / IV-b">Pembina Tk. I / IV-b</option>
+                                            <option value="Pembina Utama Muda / IV-c">Pembina Utama Muda / IV-c</option>
+                                            <option value="Pembina Utama Madya / IV-d">Pembina Utama Madya / IV-d</option>
+                                            <option value="Non-ASN / PPPK">Non-ASN / PPPK</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Jabatan Fungsional</label>
+                                        <input v-model="profileForm.jabatan" type="text" placeholder="Contoh: Guru Ahli Madya" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Mata Pelajaran Utama</label>
+                                        <input v-model="profileForm.mapelUtama" type="text" placeholder="Contoh: Matematika Wajib" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Email Resmi</label>
+                                        <input v-model="profileForm.email" type="email" placeholder="nama@sman05bombana.sch.id" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">No. WhatsApp / HP</label>
+                                        <input v-model="profileForm.phone" type="text" placeholder="08xxxxxxxxxx" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+                                    </div>
+                                </div>
+
+                                <div class="flex justify-end pt-2">
+                                    <button type="submit" class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold shadow-md transition flex items-center gap-2">
+                                        <i class="fa-solid fa-circle-check"></i> Simpan Perubahan Profil
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- TAB 5: PENGATURAN -->
+                        <div v-if="currentTab === 'settings'" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6 space-y-6">
+                            <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-2 border-b border-slate-100 pb-4">
+                                <div>
+                                    <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                                        <i class="fa-solid fa-gear text-emerald-600"></i> Pengaturan Aplikasi & Integrasi GAS
+                                    </h2>
+                                    <p class="text-xs text-slate-500">Konfigurasi parameter aplikasi, URL Web App Google Apps Script, dan pejabat pengesah.</p>
+                                </div>
+                            </div>
+
+                            <!-- Integration GAS Banner Button -->
+                            <div class="p-4 bg-emerald-900 text-white rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm border border-emerald-800">
+                                <div class="space-y-1">
+                                    <h3 class="font-bold text-sm text-emerald-300 flex items-center gap-2">
+                                        <i class="fa-solid fa-database"></i> Integrasi Google Sheets & Google Drive Backend
+                                    </h3>
+                                    <p class="text-xs text-slate-300">
+                                        Kelola URL koneksi Web App Apps Script, kode `Code.gs`, dan folder Google Drive penyimpanan bukti dukung.
+                                    </p>
+                                </div>
+                                <button @click="openGasModal" class="px-4 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs rounded-xl transition shrink-0 flex items-center gap-2 shadow">
+                                    <i class="fa-solid fa-code"></i> Setup Backend GAS
+                                </button>
+                            </div>
+
+                            <form @submit.prevent="saveSettings" class="space-y-6">
+                                
+                                <!-- 1. Parameter Akademik -->
+                                <div class="space-y-3">
+                                    <h3 class="text-xs font-bold uppercase text-slate-700 tracking-wider flex items-center gap-2">
+                                        <i class="fa-solid fa-graduation-cap text-emerald-600"></i> Tahun Ajaran & Semester
+                                    </h3>
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div>
+                                            <label class="block text-xs font-medium text-slate-600 mb-1">Tahun Ajaran Aktif</label>
+                                            <input v-model="settings.tahunAjaran" type="text" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs sm:text-sm outline-none focus:ring-2 focus:ring-emerald-500">
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-medium text-slate-600 mb-1">Semester</label>
+                                            <select v-model="settings.semester" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs sm:text-sm outline-none focus:ring-2 focus:ring-emerald-500">
+                                                <option value="Ganjil">Ganjil</option>
+                                                <option value="Genap">Genap</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 2. Data Pengesahan Kepala Sekolah -->
+                                <div class="space-y-3 pt-4 border-t border-slate-100">
+                                    <h3 class="text-xs font-bold uppercase text-slate-700 tracking-wider flex items-center gap-2">
+                                        <i class="fa-solid fa-user-pen text-emerald-600"></i> Pejabat Penandatangan (Kepala Sekolah)
+                                    </h3>
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div>
+                                            <label class="block text-xs font-medium text-slate-600 mb-1">Nama Kepala Sekolah & Gelar</label>
+                                            <input v-model="settings.namaKepsek" type="text" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs sm:text-sm outline-none focus:ring-2 focus:ring-emerald-500">
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-medium text-slate-600 mb-1">NIP Kepala Sekolah</label>
+                                            <input v-model="settings.nipKepsek" type="text" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs sm:text-sm outline-none focus:ring-2 focus:ring-emerald-500">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 3. Default Preset Form -->
+                                <div class="space-y-3 pt-4 border-t border-slate-100">
+                                    <h3 class="text-xs font-bold uppercase text-slate-700 tracking-wider flex items-center gap-2">
+                                        <i class="fa-solid fa-sliders text-emerald-600"></i> Preset Default Form Input
+                                    </h3>
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div>
+                                            <label class="block text-xs font-medium text-slate-600 mb-1">Lokasi Default</label>
+                                            <input v-model="settings.defaultLokasi" type="text" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs sm:text-sm outline-none focus:ring-2 focus:ring-emerald-500">
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-medium text-slate-600 mb-1">Rentang Waktu Default</label>
+                                            <input v-model="settings.defaultJam" type="text" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs sm:text-sm outline-none focus:ring-2 focus:ring-emerald-500">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 4. Upload Logo Sekolah & Logo Pendidikan -->
+                                <div class="space-y-3 pt-4 border-t border-slate-100">
+                                    <h3 class="text-xs font-bold uppercase text-slate-700 tracking-wider flex items-center gap-2">
+                                        <i class="fa-solid fa-image text-emerald-600"></i> Upload Logo Sekolah & Logo Pendidikan (Kop Surat)
+                                    </h3>
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <!-- Logo Pendidikan -->
+                                        <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
+                                            <label class="block text-xs font-bold text-slate-700 uppercase">Logo Pendidikan / Pemprov / Tut Wuri</label>
+                                            <div class="flex items-center gap-3">
+                                                <div class="w-16 h-16 bg-white border border-slate-300 rounded-lg flex items-center justify-center overflow-hidden shrink-0 shadow-xs">
+                                                    <img v-if="settings.logoPendidikanUrl" :src="settings.logoPendidikanUrl" class="w-full h-full object-contain p-1">
+                                                    <i v-else class="fa-solid fa-building-columns text-slate-300 text-2xl"></i>
+                                                </div>
+                                                <div class="space-y-1.5 flex-grow">
+                                                    <label class="cursor-pointer bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold shadow-xs transition inline-flex items-center gap-1.5">
+                                                        <i class="fa-solid fa-upload"></i> Unggah Logo Pendidikan
+                                                        <input type="file" @change="handleLogoPendidikanUpload" accept="image/*" class="hidden">
+                                                    </label>
+                                                    <button type="button" v-if="settings.logoPendidikanUrl" @click="removeLogoPendidikan" class="block text-[11px] text-red-600 hover:underline font-medium">
+                                                        <i class="fa-solid fa-trash-can"></i> Hapus Logo
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Logo Sekolah -->
+                                        <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
+                                            <label class="block text-xs font-bold text-slate-700 uppercase">Logo SMAN 05 Bombana</label>
+                                            <div class="flex items-center gap-3">
+                                                <div class="w-16 h-16 bg-white border border-slate-300 rounded-lg flex items-center justify-center overflow-hidden shrink-0 shadow-xs">
+                                                    <img v-if="settings.logoSekolahUrl" :src="settings.logoSekolahUrl" class="w-full h-full object-contain p-1">
+                                                    <i v-else class="fa-solid fa-school text-slate-300 text-2xl"></i>
+                                                </div>
+                                                <div class="space-y-1.5 flex-grow">
+                                                    <label class="cursor-pointer bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold shadow-xs transition inline-flex items-center gap-1.5">
+                                                        <i class="fa-solid fa-upload"></i> Unggah Logo Sekolah
+                                                        <input type="file" @change="handleLogoSekolahUpload" accept="image/*" class="hidden">
+                                                    </label>
+                                                    <button type="button" v-if="settings.logoSekolahUrl" @click="removeLogoSekolah" class="block text-[11px] text-red-600 hover:underline font-medium">
+                                                        <i class="fa-solid fa-trash-can"></i> Hapus Logo
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="flex justify-end pt-2">
+                                    <button type="submit" class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold shadow-md transition flex items-center gap-2">
+                                        <i class="fa-solid fa-floppy-disk"></i> Simpan Pengaturan
+                                    </button>
+                                </div>
+                            </form>
+
+                            <!-- Backup Data & Maintenance -->
+                            <div class="pt-6 border-t border-slate-100 space-y-3">
+                                <h3 class="text-xs font-bold uppercase text-slate-700 tracking-wider flex items-center gap-2">
+                                    <i class="fa-solid fa-database text-emerald-600"></i> Pengelolaan Data & Cadangan
+                                </h3>
+                                <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3">
+                                    <div>
+                                        <p class="font-bold text-xs text-slate-800">Ekspor Data Jurnal (JSON)</p>
+                                        <p class="text-[11px] text-slate-500">Unduh seluruh riwayat entri jurnal harian ke dalam berkas cadangan lokal.</p>
+                                    </div>
+                                    <button @click="exportData" class="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-semibold shadow-sm transition flex items-center gap-2 shrink-0">
+                                        <i class="fa-solid fa-download"></i> Ekspor Cadangan
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+        </main>
+
+        <!-- DETAIL MODAL -->
+        <div v-if="selectedJournalModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+            <div class="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 space-y-4 shadow-2xl border border-slate-200">
+                <div class="flex justify-between items-start border-b border-slate-100 pb-3">
+                    <div>
+                        <span class="px-2.5 py-1 bg-emerald-100 text-emerald-800 text-xs font-bold rounded-full">
+                            {{ selectedJournalModal.indikator }}
+                        </span>
+                        <h3 class="text-lg font-bold text-slate-800 mt-1.5">{{ selectedJournalModal.submenu }}</h3>
+                    </div>
+                    <button @click="selectedJournalModal = null" class="text-slate-400 hover:text-slate-600 text-lg p-1">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 text-xs bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <div><span class="font-semibold text-slate-500">Tanggal:</span> {{ formatDate(selectedJournalModal.tanggal) }}</div>
+                    <div><span class="font-semibold text-slate-500">Waktu:</span> {{ selectedJournalModal.jam }}</div>
+                    <div><span class="font-semibold text-slate-500">Lokasi:</span> {{ selectedJournalModal.lokasi }}</div>
+                    <div v-if="selectedJournalModal.kelas"><span class="font-semibold text-slate-500">Kelas & Mapel:</span> {{ selectedJournalModal.kelas }} ({{ selectedJournalModal.mapel }})</div>
+                </div>
+
+                <div class="space-y-3 text-xs">
+                    <div>
+                        <h4 class="font-bold text-slate-700 uppercase tracking-wide">Uraian Kegiatan:</h4>
+                        <p class="text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-200 mt-1 leading-relaxed">{{ selectedJournalModal.uraian }}</p>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-slate-700 uppercase tracking-wide">Catatan / Hasil:</h4>
+                        <p class="text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-200 mt-1 leading-relaxed">{{ selectedJournalModal.hasil }}</p>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-slate-700 uppercase tracking-wide">Refleksi Mandiri:</h4>
+                        <p class="text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-200 mt-1 leading-relaxed">{{ selectedJournalModal.refleksi }}</p>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-slate-700 uppercase tracking-wide">Pembinaan / Rekomendasi Mandiri:</h4>
+                        <p class="text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-200 mt-1 leading-relaxed">{{ selectedJournalModal.pembinaan }}</p>
+                    </div>
+
+                    <div v-if="selectedJournalModal.driveUrl || selectedJournalModal.fileName">
+                        <h4 class="font-bold text-slate-700 uppercase tracking-wide mb-1">Bukti Dukung Terlampir:</h4>
+                        <div class="p-3 bg-slate-100 rounded-xl border border-slate-200 flex items-center justify-between gap-3">
+                            <div class="flex items-center gap-3">
+                                <i class="fa-solid fa-file-circle-check text-2xl text-emerald-600"></i>
+                                <div>
+                                    <p class="font-semibold text-slate-800">{{ selectedJournalModal.fileName || 'Berkas Bukti Dukung' }}</p>
+                                    <p class="text-[10px] text-slate-400">Tersimpan aman di Google Drive</p>
+                                </div>
+                            </div>
+                            <a v-if="selectedJournalModal.driveUrl" :href="selectedJournalModal.driveUrl" target="_blank" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition flex items-center gap-1">
+                                <i class="fa-solid fa-external-link"></i> Buka Berkas
+                            </a>
+                        </div>
+                        <img v-if="selectedJournalModal.filePreview" :src="selectedJournalModal.filePreview" class="mt-2 rounded-xl max-h-60 border border-slate-200 object-cover w-full shadow-sm">
+                    </div>
+                </div>
+
+                <div class="pt-2 flex justify-end">
+                    <button @click="selectedJournalModal = null" class="px-5 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl text-xs font-semibold">Tutup</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- GOOGLE APPS SCRIPT SETUP MODAL -->
+        <div v-if="showGasModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+            <div class="bg-white rounded-3xl max-w-3xl w-full max-h-[90vh] overflow-y-auto p-6 space-y-5 shadow-2xl border border-slate-200">
+                <div class="flex justify-between items-start border-b border-slate-100 pb-3">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-9 h-9 bg-emerald-100 text-emerald-700 rounded-xl flex items-center justify-center text-lg font-bold">
+                            <i class="fa-solid fa-database"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-base font-extrabold text-slate-800">Pengaturan Database Google Apps Script & Drive</h3>
+                            <p class="text-xs text-slate-500">Hubungkan aplikasi web ini dengan Google Sheets dan Google Drive Anda.</p>
+                        </div>
+                    </div>
+                    <button @click="showGasModal = false" class="text-slate-400 hover:text-slate-600 text-lg p-1">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <!-- Input GAS Web App URL -->
+                <div class="space-y-2 bg-emerald-50/60 border border-emerald-200 p-4 rounded-2xl">
+                    <label class="block text-xs font-bold text-slate-800 uppercase">
+                        1. Tempel Web App Executable URL Google Apps Script:
+                    </label>
+                    <div class="flex flex-col sm:flex-row gap-2">
+                        <input v-model="tempGasUrl" type="text" placeholder="https://script.google.com/macros/s/.../exec" class="flex-grow bg-white border border-emerald-300 rounded-xl px-3.5 py-2 text-xs outline-none focus:ring-2 focus:ring-emerald-500 font-mono">
+                        <button @click="saveGasUrl" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition shrink-0">
+                            Simpan & Tes Koneksi
+                        </button>
+                    </div>
+                    <p class="text-[10px] text-emerald-800">
+                        *URL ini didapatkan setelah Anda men-deploy skrip di Google Apps Script sebagai <strong>Web App</strong> (Execute as: Me, Access: Anyone).
+                    </p>
+                </div>
+
+                <!-- Step by step instructions -->
+                <div class="space-y-3 text-xs text-slate-600 border-t border-slate-100 pt-3">
+                    <h4 class="font-bold text-slate-800 uppercase tracking-wider">2. Cara Deploy Kode Backend Google Apps Script (Code.gs):</h4>
+                    <ol class="list-decimal list-inside space-y-1.5 text-slate-700 text-[11px] leading-relaxed">
+                        <li>Buka Google Spreadsheet baru di Drive Anda (Beri nama: <strong>Database Jurnal Guru SMAN 05 Bombana</strong>).</li>
+                        <li>Klik menu <strong>Ekstensi</strong> &rarr; <strong>Apps Script</strong>.</li>
+                        <li>Hapus semua kode yang ada di editor Apps Script, lalu salin seluruh kode <code>Code.gs</code> di bawah ini.</li>
+                        <li>Klik tombol <strong>Deploy</strong> (Terapkan) &rarr; <strong>Deployment Baru</strong>.</li>
+                        <li>Pilih Jenis: <strong>Web App</strong>. Isikan deskripsi, set <i>Execute as: Me</i>, dan <i>Who has access: Anyone</i> (Siapa saja).</li>
+                        <li>Klik <strong>Deploy</strong>, lalu berikan izin akses (*Authorize Access*).</li>
+                        <li>Salin <strong>Web App URL</strong> yang diberikan dan tempelkan pada kolom nomor 1 di atas.</li>
+                    </ol>
+                </div>
+
+                <!-- Copyable Code.gs Box -->
+                <div class="space-y-2">
+                    <div class="flex justify-between items-center">
+                        <label class="block text-xs font-bold text-slate-800 uppercase">
+                            3. Skrip Backend `Code.gs` (Siap Copas):
+                        </label>
+                        <button @click="copyGasScript" class="px-3 py-1 bg-slate-800 hover:bg-slate-900 text-white text-[11px] font-bold rounded-lg transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-copy"></i> Salin Kode Script
+                        </button>
+                    </div>
+                    <pre class="bg-slate-900 text-emerald-400 p-4 rounded-2xl text-[10px] font-mono overflow-x-auto max-h-56 leading-relaxed border border-slate-800 select-all">{{ gasScriptCode }}</pre>
+                </div>
+
+                <div class="pt-2 flex justify-end gap-2">
+                    <button @click="showGasModal = false" class="px-5 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl text-xs font-semibold">Tutup</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="bg-slate-900 text-slate-400 text-center py-4 text-xs border-t border-slate-800 no-print mt-auto">
+            &copy; 2026 SMA Negeri 05 Bombana - Sistem Jurnal Harian Guru ASN (Terintegrasi Google Drive & Sheets)
+        </footer>
+    </div>
+
+    <script>
+        const { createApp, ref, computed, onMounted } = Vue;
+
+        createApp({
+            setup() {
+                // Navigation & UI State
+                const currentTab = ref('dashboard');
+                const isSidebarHidden = ref(false);
+                const toastMessage = ref('');
+                const isLoading = ref(false);
+                const selectedJournalModal = ref(null);
+                const showGasModal = ref(false);
+                const searchQuery = ref('');
+                const filterIndikator = ref('');
+
+                // GAS Integration Config
+                const gasAppUrl = ref(localStorage.getItem('SMAN5_GAS_URL') || '');
+                const tempGasUrl = ref(localStorage.getItem('SMAN5_GAS_URL') || '');
+
+                // Application & School Settings
+                const settings = ref({
+                    tahunAjaran: '2025/2026',
+                    semester: 'Ganjil',
+                    namaKepsek: 'H. Sudirman, S.Pd., M.M.',
+                    nipKepsek: '19700101 199503 1 001',
+                    defaultLokasi: 'SMA Negeri 05 Bombana',
+                    defaultJam: '07:30 - 09:00 WITA',
+                    logoSekolahUrl: '',
+                    logoPendidikanUrl: ''
+                });
+
+                // Auth & Profile State
+                const isLoggedIn = ref(true);
+                const loginForm = ref({ username: '', password: '' });
+                const loginError = ref('');
+                const currentUser = ref({ 
+                    nama: 'Drs. Ahmad Subagja, M.Pd.', 
+                    nip: '19850817 201001 1 002',
+                    nuptk: '3456789012345678',
+                    pangkat: 'Pembina Utama Muda / IV-c',
+                    jabatan: 'Guru Ahli Madya',
+                    mapelUtama: 'Matematika Wajib',
+                    email: 'ahmad.subagja@sman05bombana.sch.id',
+                    phone: '081234567890',
+                    avatarUrl: ''
+                });
+
+                const profileForm = ref({ ...currentUser.value });
+
+                const categoryMap = {
+                    "Kehadiran ASN": [
+                        "Upacara & Apel Pagi",
+                        "Masuk & Keluar Tepat Waktu",
+                        "Kegiatan Rapat Sekolah",
+                        "Lainnya"
+                    ],
+                    "Pelaksanaan Pembelajaran": [
+                        "Perencanaan Pembelajaran",
+                        "Pelaksanaan Tatap Muka Kelas",
+                        "Penilaian Formatif/Sumatif",
+                        "Refleksi Pembelajaran",
+                        "Pelaporan Hasil Belajar Siswa",
+                        "Lainnya"
+                    ],
+                    "Pengembangan Pend. Karakter": [
+                        "Kepramukaan",
+                        "Kepemimpinan (OSIS)",
+                        "Budaya Religius",
+                        "Literasi & Numerasi",
+                        "Seni & Bela Diri",
+                        "Ekstrakurikuler lainnya"
+                    ],
+                    "Pelaksanaan Tugas Tambahan": [
+                        "Kepala Sekolah",
+                        "Wakasek Kurikulum",
+                        "Wakasek Kesiswaan",
+                        "Wakasek Humas",
+                        "Wakasek Sarpras",
+                        "Operator Dapodik",
+                        "Wali Kelas/Guru Wali",
+                        "Kepala Laboratorium Komputer",
+                        "Kepala Laboratorium IPA",
+                        "Kepala Perpustakaan",
+                        "Kepala Bengkel",
+                        "Kepala Sanggar/Ordibasis",
+                        "Petugas Piket Harian",
+                        "Patroli Keamanan Siswa (PKS)",
+                        "Lainnya"
+                    ],
+                    "Pelaksanaan Tugas BK": [
+                        "Pemetaan Karakteristik Siswa",
+                        "Penyuluhan/Konseling",
+                        "Pendampingan Siswa ABK",
+                        "Kunjungan Rumah",
+                        "Penanganan Siswa Bermasalah",
+                        "Komunikasi dengan Orang Tua",
+                        "Kolaborasi dengan Wali Kelas",
+                        "Lainnya"
+                    ],
+                    "Penguatan Kompetensi": [
+                        "Pelaksanaan Penguatan Guru",
+                        "Kegiatan Komunitas/Jam Belajar",
+                        "Kegiatan Pengembangan Diri",
+                        "Penguatan Keterampilan IT/KKA",
+                        "MGMP/Hari Belajar Guru",
+                        "Lainnya"
+                    ]
+                };
+
+                const formData = ref({
+                    indikator: '',
+                    submenu: '',
+                    kelas: '',
+                    mapel: '',
+                    tanggal: new Date().toISOString().substring(0, 10),
+                    jam: '07:30 - 09:00 WITA',
+                    lokasi: 'SMA Negeri 05 Bombana',
+                    uraian: '',
+                    hasil: '',
+                    refleksi: '',
+                    pembinaan: '',
+                    fileName: '',
+                    fileBase64: '',
+                    fileMimeType: '',
+                    filePreview: null
+                });
+
+                // Default Local Demo Data
+                const journals = ref([
+                    {
+                        id: 1,
+                        indikator: "Pelaksanaan Pembelajaran",
+                        submenu: "Pelaksanaan Tatap Muka Kelas",
+                        kelas: "XII IPA 1",
+                        mapel: "Matematika Wajib",
+                        tanggal: "2026-08-17",
+                        jam: "07:30 - 09:00 WITA",
+                        lokasi: "Ruang Kelas XII IPA 1",
+                        uraian: "Melaksanakan pembelajaran tatap muka materi Trigonometri Analitis dengan metode Problem Based Learning.",
+                        hasil: "85% siswa mampu menguasai penyelesaian persamaan trigonometri.",
+                        refleksi: "Sebagian kecil siswa perlu pendampingan aljabar dasar.",
+                        pembinaan: "Memberikan latihan terstruktur mandiri untuk pemantapan.",
+                        fileName: "Bukti_Dukung_Pembelajaran_XII.jpg",
+                        driveUrl: "https://drive.google.com",
+                        filePreview: "https://placehold.co/600x400/059669/ffffff?text=Bukti+Dukung+Tatap+Muka"
+                    },
+                    {
+                        id: 2,
+                        indikator: "Kehadiran ASN",
+                        submenu: "Upacara & Apel Pagi",
+                        tanggal: "2026-08-17",
+                        jam: "07:00 - 07:30 WITA",
+                        lokasi: "Lapangan Utama SMAN 05 Bombana",
+                        uraian: "Mengikuti Apel Pagi Senin bersama jajaran guru, staf, dan peserta didik.",
+                        hasil: "Apel terlaksana dengan tertib dan khidmat.",
+                        refleksi: "Kehadiran tepat waktu tercapai 100%.",
+                        pembinaan: "Mempertahankan budaya disiplin apel pagi.",
+                        fileName: "Foto_Apel_Pagi.jpg",
+                        driveUrl: "https://drive.google.com",
+                        filePreview: "https://placehold.co/600x400/0284c7/ffffff?text=Bukti+Dukung+Apel+Pagi"
+                    }
+                ]);
+
+                const gasScriptCode = ref(`// =================================================================
+// GOOGLE APPS SCRIPT BACKEND CODE (Code.gs)
+// DATABASE: GOOGLE SHEETS & GOOGLE DRIVE
+// SMA NEGERI 05 BOMBANA - SISTEM JURNAL HARIAN GURU
+// =================================================================
+
+const SHEET_NAME_JURNAL = "Jurnal_Guru";
+const DRIVE_FOLDER_NAME = "Jurnal_Guru_SMAN05_Files";
+
+function doGet(e) {
+  const action = e.parameter.action;
+  
+  if (action === "getAll") {
+    return handleGetAll();
+  }
+  
+  return responseJSON({ status: "success", message: "API Jurnal SMAN 05 Bombana Aktif!" });
+}
+
+function doPost(e) {
+  try {
+    const contents = JSON.parse(e.postData.contents);
+    const action = contents.action;
+    
+    if (action === "saveJournal") {
+      return handleSaveJournal(contents.data);
+    } else if (action === "deleteJournal") {
+      return handleDeleteJournal(contents.id);
+    } else if (action === "getAll") {
+      return handleGetAll();
+    }
+    
+    return responseJSON({ status: "error", message: "Aksi tidak dikenal" });
+  } catch (err) {
+    return responseJSON({ status: "error", message: err.toString() });
+  }
+}
+
+function handleSaveJournal(data) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName(SHEET_NAME_JURNAL);
+  
+  if (!sheet) {
+    sheet = ss.insertSheet(SHEET_NAME_JURNAL);
+    sheet.appendRow([
+      "ID", "Tanggal", "Jam", "Indikator", "Submenu", "Kelas", "Mapel",
+      "Lokasi", "Uraian", "Hasil", "Refleksi", "Pembinaan", "File Name", "Drive URL", "Timestamp"
+    ]);
+  }
+  
+  let driveUrl = data.driveUrl || "";
+  if (data.fileBase64 && data.fileName) {
+    driveUrl = uploadToGoogleDrive(data.fileBase64, data.fileMimeType, data.fileName);
+  }
+  
+  const id = data.id || Date.now().toString();
+  const timestamp = new Date().toISOString();
+  
+  sheet.appendRow([
+    id,
+    data.tanggal || "",
+    data.jam || "",
+    data.indikator || "",
+    data.submenu || "",
+    data.kelas || "",
+    data.mapel || "",
+    data.lokasi || "",
+    data.uraian || "",
+    data.hasil || "",
+    data.refleksi || "",
+    data.pembinaan || "",
+    data.fileName || "",
+    driveUrl,
+    timestamp
+  ]);
+  
+  return responseJSON({
+    status: "success",
+    message: "Data jurnal berhasil disimpan ke Sheets & Drive!",
+    id: id,
+    driveUrl: driveUrl
+  });
+}
+
+function handleDeleteJournal(id) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName(SHEET_NAME_JURNAL);
+  if (!sheet) return responseJSON({ status: "error", message: "Sheet tidak ditemukan" });
+  
+  const data = sheet.getDataRange().getValues();
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][0].toString() === id.toString()) {
+      sheet.deleteRow(i + 1);
+      return responseJSON({ status: "success", message: "Jurnal berhasil dihapus dari Sheets" });
+    }
+  }
+  return responseJSON({ status: "error", message: "ID Jurnal tidak ditemukan" });
+}
+
+function handleGetAll() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName(SHEET_NAME_JURNAL);
+  if (!sheet) {
+    return responseJSON({ status: "success", journals: [] });
+  }
+  
+  const rows = sheet.getDataRange().getValues();
+  if (rows.length <= 1) {
+    return responseJSON({ status: "success", journals: [] });
+  }
+  
+  const journals = [];
+  for (let i = 1; i < rows.length; i++) {
+    const r = rows[i];
+    journals.unshift({
+      id: r[0],
+      tanggal: r[1],
+      jam: r[2],
+      indikator: r[3],
+      submenu: r[4],
+      kelas: r[5],
+      mapel: r[6],
+      lokasi: r[7],
+      uraian: r[8],
+      hasil: r[9],
+      refleksi: r[10],
+      pembinaan: r[11],
+      fileName: r[12],
+      driveUrl: r[13]
+    });
+  }
+  
+  return responseJSON({ status: "success", journals: journals });
+}
+
+function uploadToGoogleDrive(base64Data, mimeType, fileName) {
+  try {
+    let folder;
+    const folders = DriveApp.getFoldersByName(DRIVE_FOLDER_NAME);
+    if (folders.hasNext()) {
+      folder = folders.next();
+    } else {
+      folder = DriveApp.createFolder(DRIVE_FOLDER_NAME);
+    }
+    
+    const bytes = Utilities.base64Decode(base64Data.split(",")[1] || base64Data);
+    const blob = Utilities.newBlob(bytes, mimeType, fileName);
+    const file = folder.createFile(blob);
+    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    
+    return file.getUrl();
+  } catch (err) {
+    Logger.log("Error Drive Upload: " + err.toString());
+    return "";
+  }
+}
+
+function responseJSON(obj) {
+  return ContentService
+    .createTextOutput(JSON.stringify(obj))
+    .setMimeType(ContentService.MimeType.JSON);
+}`);
+
+                const fetchDataFromGas = async () => {
+                    if (!gasAppUrl.value) return;
+                    isLoading.value = true;
+                    try {
+                        const response = await fetch(`${gasAppUrl.value}?action=getAll`);
+                        const result = await response.json();
+                        if (result.status === 'success' && Array.isArray(result.journals)) {
+                            journals.value = result.journals;
+                            showToast("Data jurnal berhasil disinkronkan dari Google Sheets!");
+                        }
+                    } catch (err) {
+                        console.error("Gagal mengambil data dari GAS:", err);
+                        showToast("Koneksi GAS bermasalah, menggunakan cache lokal.");
+                    } finally {
+                        isLoading.value = false;
+                    }
+                };
+
+                onMounted(() => {
+                    if (gasAppUrl.value) {
+                        fetchDataFromGas();
+                    }
+                });
+
+                const showToast = (msg) => {
+                    toastMessage.value = msg;
+                    setTimeout(() => {
+                        toastMessage.value = '';
+                    }, 3500);
+                };
+
+                const selectTab = (tab) => {
+                    currentTab.value = tab;
+                };
+
+                const toggleSidebar = () => {
+                    isSidebarHidden.value = !isSidebarHidden.value;
+                };
+
+                const openGasModal = () => {
+                    tempGasUrl.value = gasAppUrl.value;
+                    showGasModal.value = true;
+                };
+
+                const saveGasUrl = () => {
+                    gasAppUrl.value = tempGasUrl.value.trim();
+                    localStorage.setItem('SMAN5_GAS_URL', gasAppUrl.value);
+                    showToast("URL Google Apps Script berhasil disimpan!");
+                    if (gasAppUrl.value) {
+                        fetchDataFromGas();
+                    }
+                    showGasModal.value = false;
+                };
+
+                const copyGasScript = () => {
+                    navigator.clipboard.writeText(gasScriptCode.value);
+                    showToast("Kode Code.gs berhasil disalin ke clipboard!");
+                };
+
+                const currentSubmenus = computed(() => {
+                    return formData.value.indikator ? categoryMap[formData.value.indikator] || [] : [];
+                });
+
+                const onIndikatorChange = () => {
+                    formData.value.submenu = '';
+                    formData.value.kelas = '';
+                    formData.value.mapel = '';
+                };
+
+                const quickLogin = (nip, dob, nama) => {
+                    loginForm.value.username = nip;
+                    loginForm.value.password = dob;
+                    currentUser.value = { nama, nip, jabatan: 'Guru Ahli Madya', mapelUtama: 'Matematika Wajib' };
+                    isLoggedIn.value = true;
+                    loginError.value = '';
+                    showToast(`Selamat datang kembali, ${nama}!`);
+                };
+
+                const handleLogin = () => {
+                    if (loginForm.value.username && loginForm.value.password) {
+                        currentUser.value = {
+                            nama: loginForm.value.username.length > 10 ? 'Drs. Ahmad Subagja, M.Pd.' : 'Tenaga Pendidik',
+                            nip: loginForm.value.username,
+                            jabatan: 'Guru Mata Pelajaran',
+                            mapelUtama: 'Kurikulum Merdeka'
+                        };
+                        isLoggedIn.value = true;
+                        loginError.value = '';
+                        showToast("Berhasil masuk ke portal jurnal!");
+                    } else {
+                        loginError.value = 'Mohon isi NIP/NIK dan Tanggal Lahir Anda.';
+                    }
+                };
+
+                const logout = () => {
+                    isLoggedIn.value = false;
+                    loginForm.value = { username: '', password: '' };
+                };
+
+                const handleFileUpload = (e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                        formData.value.fileName = file.name;
+                        formData.value.fileMimeType = file.type;
+
+                        const reader = new FileReader();
+                        reader.onload = (event) => {
+                            formData.value.fileBase64 = event.target.result;
+                            if (file.type.startsWith('image/')) {
+                                formData.value.filePreview = event.target.result;
+                            } else {
+                                formData.value.filePreview = null;
+                            }
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                };
+
+                const removeFile = () => {
+                    formData.value.fileName = '';
+                    formData.value.fileBase64 = '';
+                    formData.value.fileMimeType = '';
+                    formData.value.filePreview = null;
+                };
+
+                const saveJournal = async () => {
+                    isLoading.value = true;
+                    const id = Date.now().toString();
+
+                    const newEntry = {
+                        id: id,
+                        ...JSON.parse(JSON.stringify(formData.value))
+                    };
+
+                    // Send to Google Apps Script Backend if configured
+                    if (gasAppUrl.value) {
+                        try {
+                            const response = await fetch(gasAppUrl.value, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                                body: JSON.stringify({
+                                    action: 'saveJournal',
+                                    data: newEntry
+                                })
+                            });
+                            const res = await response.json();
+                            if (res.status === 'success') {
+                                if (res.driveUrl) newEntry.driveUrl = res.driveUrl;
+                                showToast("Berhasil tersimpan ke Google Sheets & Drive!");
+                            }
+                        } catch (err) {
+                            console.error("Gagal simpan ke GAS:", err);
+                            showToast("Tersimpan secara lokal (Gagal koneksi GAS).");
+                        }
+                    } else {
+                        showToast("Data jurnal berhasil disimpan di browser (Local Mode)!");
+                    }
+
+                    journals.value.unshift(newEntry);
+                    resetForm();
+                    isLoading.value = false;
+                    currentTab.value = 'history';
+                };
+
+                const deleteJournal = async (id) => {
+                    if (!confirm("Apakah Anda yakin ingin menghapus catatan jurnal ini?")) return;
+
+                    journals.value = journals.value.filter(j => j.id !== id);
+
+                    if (gasAppUrl.value) {
+                        try {
+                            await fetch(gasAppUrl.value, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                                body: JSON.stringify({
+                                    action: 'deleteJournal',
+                                    id: id
+                                })
+                            });
+                        } catch (e) {
+                            console.error(e);
+                        }
+                    }
+                    showToast("Catatan jurnal telah dihapus.");
+                };
+
+                const resetForm = () => {
+                    formData.value = {
+                        indikator: '',
+                        submenu: '',
+                        kelas: '',
+                        mapel: '',
+                        tanggal: new Date().toISOString().substring(0, 10),
+                        jam: settings.value.defaultJam || '07:30 - 09:00 WITA',
+                        lokasi: settings.value.defaultLokasi || 'SMA Negeri 05 Bombana',
+                        uraian: '',
+                        hasil: '',
+                        refleksi: '',
+                        pembinaan: '',
+                        fileName: '',
+                        fileBase64: '',
+                        fileMimeType: '',
+                        filePreview: null
+                    };
+                };
+
+                const handleAvatarUpload = (e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = (ev) => {
+                            profileForm.value.avatarUrl = ev.target.result;
+                            showToast("Foto profil terpilih!");
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                };
+
+                const removeAvatar = () => {
+                    profileForm.value.avatarUrl = '';
+                };
+
+                const handleLogoSekolahUpload = (e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = (ev) => {
+                            settings.value.logoSekolahUrl = ev.target.result;
+                            showToast("Logo Sekolah berhasil diperbarui!");
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                };
+
+                const removeLogoSekolah = () => { settings.value.logoSekolahUrl = ''; };
+
+                const handleLogoPendidikanUpload = (e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = (ev) => {
+                            settings.value.logoPendidikanUrl = ev.target.result;
+                            showToast("Logo Pendidikan berhasil diperbarui!");
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                };
+
+                const removeLogoPendidikan = () => { settings.value.logoPendidikanUrl = ''; };
+
+                const saveProfile = () => {
+                    currentUser.value = { ...profileForm.value };
+                    showToast("Profil guru berhasil diperbarui!");
+                };
+
+                const saveSettings = () => {
+                    showToast("Pengaturan aplikasi berhasil disimpan!");
+                };
+
+                const exportData = () => {
+                    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(journals.value, null, 2));
+                    const downloadAnchor = document.createElement('a');
+                    downloadAnchor.setAttribute("href", dataStr);
+                    downloadAnchor.setAttribute("download", `Jurnal_Guru_${currentUser.value.nip}_${new Date().toISOString().substring(0,10)}.json`);
+                    document.body.appendChild(downloadAnchor);
+                    downloadAnchor.click();
+                    downloadAnchor.remove();
+                    showToast("Berkas cadangan berhasil diunduh!");
+                };
+
+                const openDetailModal = (journal) => {
+                    selectedJournalModal.value = journal;
+                };
+
+                const filteredJournals = computed(() => {
+                    return journals.value.filter(j => {
+                        const matchesQuery = !searchQuery.value || 
+                            j.uraian.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+                            j.lokasi.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+                            j.submenu.toLowerCase().includes(searchQuery.value.toLowerCase());
+                        const matchesIndikator = !filterIndikator.value || j.indikator === filterIndikator.value;
+                        return matchesQuery && matchesIndikator;
+                    });
+                });
+
+                const recentJournals = computed(() => journals.value.slice(0, 5));
+                const totalTatapMuka = computed(() => journals.value.filter(j => j.submenu === 'Pelaksanaan Tatap Muka Kelas').length);
+                const totalBuktiDukung = computed(() => journals.value.filter(j => j.fileName || j.driveUrl).length);
+
+                const indicatorCounts = computed(() => {
+                    const counts = {};
+                    Object.keys(categoryMap).forEach(cat => counts[cat] = 0);
+                    journals.value.forEach(j => {
+                        if (counts[j.indikator] !== undefined) counts[j.indikator]++;
+                        else counts[j.indikator] = 1;
+                    });
+                    return counts;
+                });
+
+                const activeIndicatorsCount = computed(() => Object.values(indicatorCounts.value).filter(val => val > 0).length);
+
+                const calculatePercentage = (count) => {
+                    if (journals.value.length === 0) return 0;
+                    return Math.round((count / journals.value.length) * 100);
+                };
+
+                const formatDate = (dateStr) => {
+                    if (!dateStr) return '';
+                    const options = { day: 'numeric', month: 'long', year: 'numeric' };
+                    return new Date(dateStr).toLocaleDateString('id-ID', options);
+                };
+
+                const todayFormatted = computed(() => new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }));
+                const currentMonthYear = computed(() => new Date().toLocaleDateString('id-ID', { month: 'long', year: 'numeric' }));
+
+                const printReport = () => {
+                    try {
+                        window.print();
+                    } catch (e) {
+                        showToast("Gunakan kombinasi tombol Ctrl + P untuk mencetak.");
+                    }
+                };
+
+                return {
+                    isLoggedIn,
+                    currentUser,
+                    profileForm,
+                    settings,
+                    loginForm,
+                    loginError,
+                    toastMessage,
+                    isLoading,
+                    currentTab,
+                    isSidebarHidden,
+                    gasAppUrl,
+                    tempGasUrl,
+                    showGasModal,
+                    gasScriptCode,
+                    selectTab,
+                    toggleSidebar,
+                    openGasModal,
+                    saveGasUrl,
+                    copyGasScript,
+                    fetchDataFromGas,
+                    categoryMap,
+                    formData,
+                    currentSubmenus,
+                    journals,
+                    searchQuery,
+                    filterIndikator,
+                    filteredJournals,
+                    recentJournals,
+                    totalTatapMuka,
+                    totalBuktiDukung,
+                    indicatorCounts,
+                    activeIndicatorsCount,
+                    calculatePercentage,
+                    selectedJournalModal,
+                    onIndikatorChange,
+                    quickLogin,
+                    handleLogin,
+                    logout,
+                    handleFileUpload,
+                    handleAvatarUpload,
+                    removeAvatar,
+                    handleLogoSekolahUpload,
+                    removeLogoSekolah,
+                    handleLogoPendidikanUpload,
+                    removeLogoPendidikan,
+                    removeFile,
+                    saveJournal,
+                    resetForm,
+                    saveProfile,
+                    saveSettings,
+                    exportData,
+                    deleteJournal,
+                    openDetailModal,
+                    formatDate,
+                    todayFormatted,
+                    currentMonthYear,
+                    printReport
+                };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
